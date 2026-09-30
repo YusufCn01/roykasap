@@ -48,13 +48,18 @@ public class SqlSetupService
 
     public string BuildConnectionString(string dbName, bool useSqlServer, string targetInstallPath)
     {
-        if (useSqlServer)
+        if (useSqlServer && CheckSqlLocalDbInstalled())
         {
             return $"Server=(localdb)\\MSSQLLocalDB;Database={dbName};Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True";
         }
         else
         {
-            string dbPath = Path.Combine(targetInstallPath, $"{dbName}.db");
+            string appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KasapOtomasyon");
+            if (!Directory.Exists(appDataFolder))
+            {
+                Directory.CreateDirectory(appDataFolder);
+            }
+            string dbPath = Path.Combine(appDataFolder, $"{dbName}.db");
             return $"Data Source={dbPath}";
         }
     }

@@ -29,16 +29,17 @@ public static class DependencyInjection
 
         // 2. DbContext Setup (LocalDB / SQLite flexible support)
         var connectionString = configuration?.GetConnectionString("DefaultConnection");
-        if (string.IsNullOrEmpty(connectionString))
+        var appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KasapOtomasyon");
+        if (!Directory.Exists(appDataFolder))
         {
-            // Portable SQLite database in user's AppData directory for zero-config startup
-            var appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KasapOtomasyon");
-            if (!Directory.Exists(appDataFolder))
-            {
-                Directory.CreateDirectory(appDataFolder);
-            }
-            var dbPath = Path.Combine(appDataFolder, "KasapOtomasyon.db");
-            connectionString = $"Data Source={dbPath}";
+            Directory.CreateDirectory(appDataFolder);
+        }
+        var sqliteDbPath = Path.Combine(appDataFolder, "KasapOtomasyon.db");
+        var sqliteConnStr = $"Data Source={sqliteDbPath}";
+
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            connectionString = sqliteConnStr;
             services.AddDbContext<KasapDbContext>(options => options.UseSqlite(connectionString));
         }
         else if (connectionString.Contains("Server=") || connectionString.Contains("Data Source=(localdb)"))

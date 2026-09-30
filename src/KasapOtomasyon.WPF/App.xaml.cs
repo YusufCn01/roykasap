@@ -1,3 +1,6 @@
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Windows;
 using KasapOtomasyon.Application.DTOs;
 using KasapOtomasyon.Infrastructure;
@@ -5,6 +8,7 @@ using KasapOtomasyon.Infrastructure.Data;
 using KasapOtomasyon.WPF.Services;
 using KasapOtomasyon.WPF.ViewModels;
 using KasapOtomasyon.WPF.Views;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -74,11 +78,56 @@ public partial class App : System.Windows.Application
 
             await _host.StartAsync();
 
-            // Initialize and Seed Database
-            using (var scope = _host.Services.CreateScope())
+            // Initialize and Seed Database (With Automatic Failsafe Fallback)
+            try
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<KasapDbContext>();
-                await DbInitializer.InitializeAsync(dbContext);
+                using (var scope = _host.Services.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<KasapDbContext>();
+                    await DbInitializer.InitializeAsync(dbContext);
+                }
+            }
+            catch (Exception dbEx)
+            {
+                Serilog.Log.Warning(dbEx, "Birincil veritabanı bağlantısı kurulamadı. Taşınabilir SQLite veritabanına otomatik geçiş yapılıyor.");
+                
+                var appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KasapOtomasyon");
+                if (!Directory.Exists(appDataFolder))
+                {
+                    Directory.CreateDirectory(appDataFolder);
+                }
+                var sqliteDbPath = Path.Combine(appDataFolder, "KasapOtomasyon.db");
+                var sqliteConnStr = $"Data Source={sqliteDbPath}";
+
+                var optionsBuilder = new DbContextOptionsBuilder<KasapDbContext>();
+                optionsBuilder.UseSqlite(sqliteConnStr);
+
+                using (var fallbackContext = new KasapDbContext(optionsBuilder.Options))
+                {
+                    await DbInitializer.InitializeAsync(fallbackContext);
+                }
+
+                // Update appsettings.json for future launches
+                try
+                {
+                    string appSettingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
+                    if (File.Exists(appSettingsPath))
+                    {
+                        string json = await File.ReadAllTextAsync(appSettingsPath);
+                        var node = JsonNode.Parse(json);
+                        if (node != null)
+                        {
+                            if (node["ConnectionStrings"] is not JsonObject connObj)
+                            {
+                                connObj = new JsonObject();
+                                node["ConnectionStrings"] = connObj;
+                            }
+                            connObj["DefaultConnection"] = sqliteConnStr;
+                            await File.WriteAllTextAsync(appSettingsPath, node.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+                        }
+                    }
+                }
+                catch { }
             }
 
             // Initialize WPF Global Localization Source for Dynamic XAML markup
