@@ -1,0 +1,1254 @@
+<UserControl x:Class="KasapOtomasyon.WPF.Views.SlaughterhouseManagementView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:conv="clr-namespace:KasapOtomasyon.WPF.Converters"
+             xmlns:loc="clr-namespace:KasapOtomasyon.WPF.Markup"
+             mc:Ignorable="d" 
+             d:DesignHeight="950" d:DesignWidth="1450"
+             Background="{StaticResource BrushBgMain}"
+             Foreground="{StaticResource BrushTextPrimary}"
+             FontFamily="Segoe UI Variable, Segoe UI, Inter, sans-serif">
+
+    <UserControl.Resources>
+        <conv:CurrencyFormatConverter x:Key="CurrencyConv"/>
+        <conv:WeightFormatConverter x:Key="WeightConv"/>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:NullToVisibilityConverter x:Key="NullToVis"/>
+
+        <!-- ERP Filter Pill RadioButton Style -->
+        <Style x:Key="ErpFilterPillStyle" TargetType="RadioButton">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" TargetName="bd" Value="{StaticResource BrushBgCardHover}"/>
+                                <Setter Property="BorderBrush" TargetName="bd" Value="{StaticResource BrushAccentLight}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Background" TargetName="bd" Value="{StaticResource BrushAccent}"/>
+                                <Setter Property="BorderBrush" TargetName="bd" Value="{StaticResource BrushAccentDark}"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Top Action & Filter Ribbon -->
+            <RowDefinition Height="*"/>    <!-- Main ERP Table & Inspector -->
+        </Grid.RowDefinitions>
+
+        <!-- ==================================================== -->
+        <!-- 1. TOP ERP ACTION & SEARCH RIBBON                    -->
+        <!-- ==================================================== -->
+        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1.5" CornerRadius="14" Padding="18,14" Margin="0,0,0,16" Effect="{StaticResource EffectCardShadow}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="12"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Row 0: ERP Title + Clean Actions -->
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Title -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="{StaticResource BrushAccent}" CornerRadius="8" Width="36" Height="36" Margin="0,0,10,0">
+                            <TextBlock Text="🐄" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{loc:Loc slaughter.title}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource BrushAccent}"/>
+                            <TextBlock Text="Hayvan Kabul, Veteriner Antemortem, Kesimhane MES, Karkas Parçalama ve Tam İzlenebilirlik" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Top Right Quick Actions (Clean, uncluttered) -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding OpenAddAnimalModalCommand}" Content="➕ YENİ HAYVAN KABUL" 
+                                Style="{StaticResource FluentPrimaryButton}" Height="38" Padding="16,0" Margin="0,0,8,0" FontWeight="Bold"/>
+
+                        <Button Command="{Binding OpenTrueCostDialogCommand}" CommandParameter="{Binding SelectedSlaughterRecord}"
+                                Content="💰 GERÇEK MALİYET (ABC)" Style="{StaticResource FluentSecondaryButton}" Height="38" Padding="12,0" Margin="0,0,8,0" FontWeight="Bold" Background="#F0FDF4" Foreground="#15803D"/>
+
+                        <Button Command="{Binding OpenRecallDialogCommand}" CommandParameter="{Binding SelectedAnimal}"
+                                Content="🚨 1-TIK GERİ ÇAĞIRMA" Style="{StaticResource FluentSecondaryButton}" Height="38" Padding="12,0" Margin="0,0,8,0" FontWeight="Bold" Background="#FEF2F2" Foreground="#DC2626"/>
+
+                        <Button Command="{Binding OpenWasteModalCommand}" Content="🚨 FİRE &amp; ZAYİAT" 
+                                Style="{StaticResource FluentSecondaryButton}" Height="38" Padding="12,0" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Row 2: Live Search Bar + Status Filter Tabs -->
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="380"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Live Search Box with Icon -->
+                    <Grid Grid.Column="0">
+                        <TextBox Text="{Binding SearchFilterText, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource FluentTextBox}" Height="38" FontSize="13" FontWeight="SemiBold" Padding="36,2,10,2"
+                                 Tag="Küpe No, Üretici, Irk veya İrsaliye Ara..."/>
+                        <TextBlock Text="🔍" FontSize="14" Foreground="{StaticResource BrushTextMuted}" VerticalAlignment="Center" Margin="12,0,0,0" IsHitTestVisible="False"/>
+                    </Grid>
+
+                    <!-- Dedicated Search Button -->
+                    <Button Grid.Column="2" Command="{Binding SearchAnimalsCommand}" Content="🔍 ARA" 
+                            Style="{StaticResource FluentSecondaryButton}" Height="38" Padding="16,0" FontWeight="Bold"/>
+
+                    <!-- Status Filter Tabs -->
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
+                        <RadioButton Content="TÜMÜ" Style="{StaticResource ErpFilterPillStyle}" IsChecked="True" 
+                                     Command="{Binding FilterByStatusCommand}" CommandParameter="ALL"/>
+                        <RadioButton Content="✓ KESİME HAZIR" Style="{StaticResource ErpFilterPillStyle}" 
+                                     Command="{Binding FilterByStatusCommand}" CommandParameter="APPROVED"/>
+                        <RadioButton Content="⛔ KARANTİNA" Style="{StaticResource ErpFilterPillStyle}" 
+                                     Command="{Binding FilterByStatusCommand}" CommandParameter="BLOCKED"/>
+                        <RadioButton Content="🔪 KESİLEN / KARKAS" Style="{StaticResource ErpFilterPillStyle}" 
+                                     Command="{Binding FilterByStatusCommand}" CommandParameter="SLAUGHTERED"/>
+                    </StackPanel>
+
+                    <!-- Status Message Ribbon -->
+                    <TextBlock Grid.Column="4" Text="{Binding StatusMessage}" Foreground="{Binding StatusColor}" FontWeight="Bold" FontSize="12" VerticalAlignment="Center"/>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- ==================================================== -->
+        <!-- 2. MAIN ERP DATAGRID & DETAIL INSPECTOR              -->
+        <!-- ==================================================== -->
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="14"/>
+                <RowDefinition Height="Auto"/> <!-- Bottom Inspector -->
+            </Grid.RowDefinitions>
+
+            <!-- Main DataGrid -->
+            <Border Grid.Row="0" Style="{StaticResource FluentCard}" Padding="0">
+                <DataGrid ItemsSource="{Binding FilteredAnimalIntakes}" SelectedItem="{Binding SelectedAnimal}" 
+                          Style="{StaticResource FluentDataGrid}" BorderThickness="0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Küpe No" Binding="{Binding EarTagNumber}" FontWeight="Bold" FontSize="13.5" Width="1.5*"/>
+                        <DataGridTextColumn Header="Pasaport No" Binding="{Binding PassportNumber}" Width="1.2*"/>
+                        <DataGridTextColumn Header="Tür / Irk" Binding="{Binding Breed}" Width="1.4*"/>
+                        <DataGridTextColumn Header="Cinsiyet / Yaş" Binding="{Binding Gender}" Width="1.1*"/>
+                        <DataGridTextColumn Header="Canlı Kg" Binding="{Binding LiveWeightKg, Converter={StaticResource WeightConv}}" FontWeight="Bold" Foreground="#16A34A" Width="1*"/>
+                        <DataGridTextColumn Header="Alış Tutarı" Binding="{Binding PurchasePrice, Converter={StaticResource CurrencyConv}}" FontWeight="SemiBold" Width="1.2*"/>
+                        <DataGridTextColumn Header="Üretici / Çiftlik" Binding="{Binding ProducerName}" Width="1.8*"/>
+                        <DataGridTextColumn Header="Sevk İrsaliyesi" Binding="{Binding WaybillNumber}" Width="1.2*"/>
+                        <DataGridTextColumn Header="Menşe" Binding="{Binding FarmOrigin}" Width="1.1*"/>
+                        
+                        <!-- Veterinary Status Badge -->
+                        <DataGridTemplateColumn Header="Veteriner Onayı" Width="1.4*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="6" Padding="8,3" HorizontalAlignment="Left">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="#F0FDF4"/>
+                                                <Setter Property="BorderBrush" Value="#BBF7D0"/>
+                                                <Setter Property="BorderThickness" Value="1"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsApprovedForSlaughter}" Value="False">
+                                                        <Setter Property="Background" Value="#FEF2F2"/>
+                                                        <Setter Property="BorderBrush" Value="#FECACA"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding VeterinaryStatus}" FontWeight="Bold" FontSize="11">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="#15803D"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsApprovedForSlaughter}" Value="False">
+                                                            <Setter Property="Foreground" Value="{StaticResource BrushDanger}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTextColumn Header="Kesim Durumu" Binding="{Binding SlaughterStatus}" FontWeight="Bold" Width="1.2*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <!-- Bottom Selected Animal Mini Inspector Ribbon -->
+            <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1.5" CornerRadius="12" Padding="16,12" Effect="{StaticResource EffectCardShadow}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="{StaticResource BrushAccentMuted}" CornerRadius="8" Padding="10,6" Margin="0,0,12,0">
+                            <TextBlock Text="🏷 SEÇİLİ HAYVAN:" FontWeight="Bold" FontSize="11" Foreground="{StaticResource BrushAccent}"/>
+                        </Border>
+                        <TextBlock Text="{Binding SelectedAnimal.EarTagNumber}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                        <TextBlock Text="{Binding SelectedAnimal.Breed}" FontSize="13" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                        <TextBlock Text="{Binding SelectedAnimal.ProducerName, StringFormat='Üretici: {0}'}" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                        <TextBlock Text="{Binding SelectedAnimal.LiveWeightKg, Converter={StaticResource WeightConv}, StringFormat='Canlı: {0}'}" FontWeight="Bold" FontSize="13" Foreground="#16A34A" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Quick Row Action Buttons -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding OpenVetModalCommand}" CommandParameter="{Binding SelectedAnimal}" 
+                                Content="🩺 Muayene Et / Bloke Değiştir" Style="{StaticResource FluentSecondaryButton}" Height="34" Padding="12,0" Margin="0,0,8,0" FontSize="12"/>
+
+                        <Button Command="{Binding OpenSlaughterModalCommand}" CommandParameter="{Binding SelectedAnimal}" 
+                                Content="🔪 Kesime Al &amp; Tart" Style="{StaticResource FluentPrimaryButton}" Height="34" Padding="14,0" Margin="0,0,8,0" FontSize="12" FontWeight="Bold"/>
+
+                        <Button Command="{Binding OpenDeboningDialogCommand}" 
+                                Content="🥩 Karkası Parçala &amp; Et Çıktıları Gir" Style="{StaticResource FluentPrimaryButton}" Height="34" Padding="14,0" Margin="0,0,8,0" FontSize="12" FontWeight="Bold" Background="#B45309"/>
+
+                        <Button Command="{Binding OpenPassportDialogCommand}" CommandParameter="{Binding SelectedAnimal}" 
+                                Content="📄 Hayvan Pasaportu &amp; PDF" Style="{StaticResource FluentSecondaryButton}" Height="34" Padding="12,0" Margin="0,0,8,0" FontSize="12" FontWeight="Bold"/>
+
+                        <Button Command="{Binding OpenTraceabilityModalCommand}" CommandParameter="{Binding SelectedAnimal}" 
+                                Content="🧬 Yaşam Döngüsü Ağacı ➔" Style="{StaticResource FluentSecondaryButton}" Height="34" Padding="12,0" FontSize="12"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ============================================================== -->
+        <!-- POPUP DIALOGS                                                  -->
+        <!-- ============================================================== -->
+
+        <!-- DIALOG 1: HAYVAN KABUL & KAYIT İŞLEMİ -->
+        <Grid Grid.RowSpan="2" Background="#60000000" Visibility="{Binding IsAddAnimalModalOpen, Converter={StaticResource BoolToVis}}">
+            <Border Width="840" MaxHeight="820" VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Background="#FFFFFF" BorderBrush="{StaticResource BrushBorder}" BorderThickness="2"
+                    CornerRadius="16" Padding="28" Effect="{StaticResource EffectModalShadow}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <!-- Header -->
+                        <Grid Margin="0,0,0,18">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Background="{StaticResource BrushAccent}" CornerRadius="8" Width="36" Height="36" Margin="0,0,10,0">
+                                    <TextBlock Text="🐄" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="HAYVAN KABUL VE KAYIT İŞLEMİ" FontSize="16" FontWeight="Bold" Foreground="{StaticResource BrushAccent}"/>
+                                    <TextBlock Text="Bakanlık Küpe Numarası, Pasaport, Sevk İrsaliyesi ve Canlı Kantar Tartımı" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button HorizontalAlignment="Right" Command="{Binding CloseAddAnimalModalCommand}" 
+                                    Content="✕" Background="Transparent" Foreground="{StaticResource BrushTextSecondary}" BorderThickness="0" FontSize="16" Cursor="Hand"/>
+                        </Grid>
+
+                        <!-- SECTION 1: KİMLİK & PASAPORT -->
+                        <Border Background="#F8FAFC" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="10" Padding="16,12" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Text="1. 📋 KİMLİK VE SEVK BELGELERİ" FontSize="12" FontWeight="Bold" Foreground="{StaticResource BrushAccent}" Margin="0,0,0,10"/>
+                                
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="HAYVAN KÜPE NO (TR...)" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+                                        <TextBox Text="{Binding NewEarTagNumber, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="40" FontSize="14" FontWeight="Bold"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="HAYVAN PASAPORT NO" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+                                        <TextBox Text="{Binding NewPassportNumber, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="40"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="SEVK İRSALİYESİ NO" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+                                        <TextBox Text="{Binding NewWaybillNumber, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="40"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="RFID / BARKOD KODU" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+                                        <TextBox Text="{Binding NewRfidTag, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="40"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- SECTION 2: FİZİKSEL ÖZELLİKLER, DİNAMİK IRK VE CİNSİYET -->
+                        <Border Background="#F8FAFC" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="10" Padding="16,12" Margin="0,0,0,14">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,10">
+                                    <TextBlock Text="2. 🥩 FİZİKSEL ÖZELLİKLER, IRK VE CİNSİYET" FontSize="12" FontWeight="Bold" Foreground="{StaticResource BrushAccent}" VerticalAlignment="Center"/>
+                                    <Button HorizontalAlignment="Right" Command="{Binding ToggleAddBreedPopupCommand}" 
+                                            Content="➕ Listeye Yeni Irk Ekle" Style="{StaticResource FluentSecondaryButton}" Height="30" Padding="10,0" FontSize="11"/>
+                                </Grid>
+
+                                <!-- In-place Quick Add Breed Bar -->
+                                <Border Background="#FEF2F2" BorderBrush="{StaticResource BrushAccentLight}" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,12"
+                                        Visibility="{Binding IsAddBreedPopupOpen, Converter={StaticResource BoolToVis}}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Grid.Column="0" Text="{Binding CustomNewBreedName, UpdateSourceTrigger=PropertyChanged}" 
+                                                 Style="{StaticResource FluentTextBox}" MinHeight="36" FontSize="13"
+                                                 Tag="Eklenecek Yeni Irk Adını Yazın (Örn: Şarole, Belçika Mavisi, İvesi)..."/>
+                                        <Button Grid.Column="2" Command="{Binding AddCustomBreedCommand}" Content="✓ IRKI KAYDET" Style="{StaticResource FluentPrimaryButton}" Height="36" Padding="14,0" FontWeight="Bold"/>
+                                    </Grid>
+                                </Border>
+                                
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="1.5*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="1.2*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="0.8*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="TÜR" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+                                        <ComboBox SelectedItem="{Binding SelectedAnimalType}" Height="40">
+                                            <ComboBoxItem Content="Büyükbaş" IsSelected="True"/>
+                                            <ComboBoxItem Content="Küçükbaş"/>
+                                        </ComboBox>
+                                    </StackPanel>
+
+                                    <!-- Dynamic Breeds Selection -->
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="HAYVAN IRKI" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+                                        <ComboBox ItemsSource="{Binding AvailableBreeds}" SelectedItem="{Binding SelectedBreed}" IsEditable="True" Height="40"/>
+                                    </StackPanel>
+
+                                    <!-- Genders Selection -->
+                                    <StackPanel Grid.Column="4">
+                                        <TextBlock Text="CİNSİYET" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+                                        <ComboBox ItemsSource="{Binding AvailableGenders}" SelectedItem="{Binding SelectedGenderString}" Height="40"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="6">
+                                        <TextBlock Text="YAŞ (AY)" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+                                        <TextBox Text="{Binding NewAgeMonths, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="40"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Live Animal Scale Reader Bar -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <Grid Margin="0,0,0,4">
+                                            <TextBlock Text="CANLI KANTAR AĞIRLIĞI (KG)" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center"/>
+                                            <Button HorizontalAlignment="Right" Command="{Binding ReadLiveAnimalScaleCommand}" Content="⚖️ KANTARDAN OKU" Style="{StaticResource FluentSecondaryButton}" Height="24" Padding="6,0" FontSize="10" FontWeight="Bold"/>
+                                        </Grid>
+                                        <TextBox Text="{Binding NewLiveWeightKg, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="40" FontSize="14" FontWeight="Bold"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="HAYVAN ALIŞ BEDELİ (TL)" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+                                        <TextBox Text="{Binding NewPurchasePrice, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="40" FontSize="14" FontWeight="Bold"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- SECTION 3: ÜRETİCİ & MENŞE -->
+                        <Border Background="#F8FAFC" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="10" Padding="16,12" Margin="0,0,0,18">
+                            <StackPanel>
+                                <TextBlock Text="3. 👨‍🌾 ÜRETİCİ VE MENŞE BİLGİSİ" FontSize="12" FontWeight="Bold" Foreground="{StaticResource BrushAccent}" Margin="0,0,0,10"/>
+                                
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="ÜRETİCİ / BESİCİ ADI" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+                                        <TextBox Text="{Binding NewProducerName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="40"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="BESİ ÇİFTLİĞİ / MENŞE KONUMU" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+                                        <TextBox Text="{Binding NewFarmOrigin, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="40"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <TextBlock Text="ÖZEL NOTLAR VE AÇIKLAMALAR" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding NewNotes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="40"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Bottom Action Buttons -->
+                        <Grid>
+                            <Button HorizontalAlignment="Left" Command="{Binding CloseAddAnimalModalCommand}" Content="Vazgeç / İptal" Style="{StaticResource FluentSecondaryButton}" Height="44" Padding="20,0"/>
+                            <Button HorizontalAlignment="Right" Command="{Binding SaveAnimalIntakeCommand}" Content="✓ HAYVANI KABUL ET VE KAYDET" Style="{StaticResource FluentPrimaryButton}" Height="44" Padding="24,0" FontWeight="Bold"/>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- DIALOG 2: VETERİNER MUAYENE VE KESİM ONAYI -->
+        <Grid Grid.RowSpan="2" Background="#60000000" Visibility="{Binding IsVetModalOpen, Converter={StaticResource BoolToVis}}">
+            <Border Width="650" VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Background="#FFFFFF" BorderBrush="{StaticResource BrushBorder}" BorderThickness="2"
+                    CornerRadius="16" Padding="28" Effect="{StaticResource EffectModalShadow}">
+                <StackPanel>
+                    <Grid Margin="0,0,0,16">
+                        <TextBlock Text="🩺 Veteriner Antemortem Muayene ve Kesim İzni" FontSize="16" FontWeight="Bold" Foreground="{StaticResource BrushAccent}"/>
+                        <Button HorizontalAlignment="Right" Command="{Binding CloseVetModalCommand}" 
+                                Content="✕" Background="Transparent" Foreground="{StaticResource BrushTextSecondary}" BorderThickness="0" FontSize="16" Cursor="Hand"/>
+                    </Grid>
+
+                    <Border Background="#F1F5F9" CornerRadius="8" Padding="12,8" Margin="0,0,0,14">
+                        <Grid>
+                            <TextBlock Text="{Binding SelectedAnimal.EarTagNumber, StringFormat='Küpe No: {0}'}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}"/>
+                            <TextBlock Text="{Binding SelectedAnimal.ProducerName, StringFormat='Üretici: {0}'}" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" HorizontalAlignment="Right"/>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock Text="VETERİNER HEKİM ADI" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding VetDoctorName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="40" Margin="0,0,0,10"/>
+
+                    <TextBlock Text="VÜCUT SICAKLIĞI (°C) [Normal: 38.0 - 39.0°C]" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding VetBodyTemperature, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="40" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                    <TextBlock Text="KLİNİK TANI VE MUAYENE NOTLARI" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding VetDiagnosis, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="60" TextWrapping="Wrap" Margin="0,0,0,14"/>
+
+                    <!-- Slaughter Approval Toggle -->
+                    <Border Background="#FEF2F2" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1.5" CornerRadius="8" Padding="14" Margin="0,0,0,18">
+                        <CheckBox IsChecked="{Binding IsApprovedForSlaughter}" Content="Kesime İzin Ver (Uygun / Sağlıklı)" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushTextPrimary}"/>
+                    </Border>
+
+                    <Grid>
+                        <Button HorizontalAlignment="Left" Command="{Binding CloseVetModalCommand}" Content="Kapat" Style="{StaticResource FluentSecondaryButton}" Height="40" Padding="18,0"/>
+                        <Button HorizontalAlignment="Right" Command="{Binding SaveVeterinaryCheckCommand}" Content="✓ MUAYENE RAPORUNU KAYDET" Style="{StaticResource FluentPrimaryButton}" Height="40" Padding="20,0" FontWeight="Bold"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- DIALOG 3: KESİMHANE VE KARKAS TARTIM & SEUROP DERECELENDİRME -->
+        <Grid Grid.RowSpan="2" Background="#60000000" Visibility="{Binding IsSlaughterModalOpen, Converter={StaticResource BoolToVis}}">
+            <Border Width="820" VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Background="#FFFFFF" BorderBrush="{StaticResource BrushBorder}" BorderThickness="2"
+                    CornerRadius="16" Padding="28" Effect="{StaticResource EffectModalShadow}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,16">
+                            <TextBlock Text="🔪 Kesimhane, Karkas Monoray Tartım &amp; SEUROP Sınıflandırma" FontSize="16" FontWeight="Bold" Foreground="{StaticResource BrushAccent}"/>
+                            <Button HorizontalAlignment="Right" Command="{Binding CloseSlaughterModalCommand}" 
+                                    Content="✕" Background="Transparent" Foreground="{StaticResource BrushTextSecondary}" BorderThickness="0" FontSize="16" Cursor="Hand"/>
+                        </Grid>
+
+                        <Border Background="#F1F5F9" CornerRadius="8" Padding="12,8" Margin="0,0,0,14">
+                            <Grid>
+                                <TextBlock Text="{Binding SelectedAnimal.EarTagNumber, StringFormat='Kesilen Küpe: {0}'}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}"/>
+                                <TextBlock Text="{Binding SelectedAnimal.LiveWeightKg, Converter={StaticResource WeightConv}, StringFormat='Canlı Kg: {0}'}" FontWeight="Bold" Foreground="#16A34A" HorizontalAlignment="Right"/>
+                            </Grid>
+                        </Border>
+
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <Grid Margin="0,0,0,4">
+                                    <TextBlock Text="SICAK KARKAS (KG)" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center"/>
+                                    <Button HorizontalAlignment="Right" Command="{Binding ReadHotCarcassScaleCommand}" Content="⚖️ MONORAY KANTAR" Style="{StaticResource FluentSecondaryButton}" Height="24" Padding="6,0" FontSize="10" FontWeight="Bold"/>
+                                </Grid>
+                                <TextBox Text="{Binding HotCarcassWeightKg, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="42" FontSize="15" FontWeight="Bold"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="SOĞUK KARKAS AĞIRLIĞI (KG)" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding ColdCarcassWeightKg, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="42" FontSize="15" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- SEUROP & Post-Mortem Meat Quality Grading Grid -->
+                        <Border Background="#F8FAFC" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Text="🏆 SEUROP ET KALİTE &amp; POST-MORTEM DERECELENDİRME:" FontWeight="Bold" FontSize="11" Foreground="{StaticResource BrushAccent}" Margin="0,0,0,8"/>
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Conformation -->
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="KONFORMASYON" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,3"/>
+                                        <ComboBox ItemsSource="{Binding ConformationClasses}" SelectedItem="{Binding ConformationClass}" Height="36" FontSize="12"/>
+                                    </StackPanel>
+
+                                    <!-- Fat Cover -->
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="YAĞLILIK (1-5)" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,3"/>
+                                        <ComboBox SelectedItem="{Binding FatCoverScore}" Height="36" FontSize="12">
+                                            <ComboBoxItem Content="1 (Çok Az Yağlı)"/>
+                                            <ComboBoxItem Content="2 (Az Yağlı)"/>
+                                            <ComboBoxItem Content="3 (Orta / İdeal)" IsSelected="True"/>
+                                            <ComboBoxItem Content="4 (Yağlı)"/>
+                                            <ComboBoxItem Content="5 (Aşırı Yağlı)"/>
+                                        </ComboBox>
+                                    </StackPanel>
+
+                                    <!-- Marbling -->
+                                    <StackPanel Grid.Column="4">
+                                        <TextBlock Text="MERMERLEŞME (BMS)" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,3"/>
+                                        <TextBox Text="{Binding MarblingScore, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="36" FontWeight="Bold"/>
+                                    </StackPanel>
+
+                                    <!-- pH -->
+                                    <StackPanel Grid.Column="6">
+                                        <TextBlock Text="24h pH (°pH)" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,3"/>
+                                        <TextBox Text="{Binding PostMortemPh24, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="36" FontWeight="Bold" Foreground="#15803D"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="SOĞUK ODA RAY / KANCA NO" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,3"/>
+                                        <TextBox Text="{Binding HookRailNumber, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="36"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="HESAPLANAN KARKAS RANDIMANI" FontSize="10" FontWeight="Bold" Foreground="#15803D" Margin="0,0,0,3"/>
+                                        <TextBlock Text="{Binding CalculatedYieldPercentage, StringFormat='% {0:N2}'}" FontSize="20" FontWeight="Bold" Foreground="#16A34A"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Activity-Based Cost Breakdown -->
+                        <Border Background="#F8FAFC" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,0,0,18">
+                            <StackPanel>
+                                <TextBlock Text="Maliyet Dağıtımı (ABC):" FontWeight="Bold" FontSize="12" Foreground="{StaticResource BrushAccent}" Margin="0,0,0,6"/>
+                                <Grid>
+                                    <TextBlock Text="{Binding CalculatedTotalCost, Converter={StaticResource CurrencyConv}, StringFormat='Toplam Maliyet: {0}'}" FontWeight="Bold" FontSize="12"/>
+                                    <TextBlock Text="{Binding CalculatedCostPerKg, Converter={StaticResource CurrencyConv}, StringFormat='Karkas Kg Maliyeti: {0}/kg'}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushAccent}" HorizontalAlignment="Right"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Grid>
+                            <Button HorizontalAlignment="Left" Command="{Binding CloseSlaughterModalCommand}" Content="İptal" Style="{StaticResource FluentSecondaryButton}" Height="42" Padding="18,0"/>
+                            <Button HorizontalAlignment="Right" Command="{Binding ExecuteSlaughterCommand}" Content="✓ KESİM VE TARTIMI TAMAMLA" Style="{StaticResource FluentPrimaryButton}" Height="42" Padding="22,0" FontWeight="Bold"/>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- DIALOG 4: KARKAS PARÇALAMA VE ANATOMİK ET KESİM DÖKÜMÜ WORKSPACE -->
+        <Grid Grid.RowSpan="2" Background="#60000000" Visibility="{Binding IsDeboningDialogOpen, Converter={StaticResource BoolToVis}}">
+            <Border Width="1200" MaxHeight="880" VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Background="#FFFFFF" BorderBrush="{StaticResource BrushBorder}" BorderThickness="2"
+                    CornerRadius="16" Padding="24" Effect="{StaticResource EffectModalShadow}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> <!-- Header -->
+                        <RowDefinition Height="Auto"/> <!-- Metrics & Remaining Weight Bar -->
+                        <RowDefinition Height="Auto"/> <!-- Add Single Cut Action Bar -->
+                        <RowDefinition Height="*"/>    <!-- Cuts DataGrid -->
+                        <RowDefinition Height="Auto"/> <!-- Bottom Actions -->
+                    </Grid.RowDefinitions>
+
+                    <!-- Row 0: Header -->
+                    <Grid Grid.Row="0" Margin="0,0,0,14">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Background="#B45309" CornerRadius="8" Width="36" Height="36" Margin="0,0,10,0">
+                                <TextBlock Text="🥩" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="KARKAS PARÇALAMA, ANATOMİK ET DÖKÜMÜ &amp; GS1-128 ETİKETLEME" FontSize="16" FontWeight="Bold" Foreground="#B45309"/>
+                                <TextBlock Text="Karkastan çıkan asil etler, but, ön çeyrek, kemik ve yağların kg bazlı detay dökümü, tezgah terazisi ve GS1-128 barkodlama" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        
+                        <Button HorizontalAlignment="Right" Command="{Binding CloseDeboningDialogCommand}" 
+                                Content="✕" Background="Transparent" Foreground="{StaticResource BrushTextSecondary}" BorderThickness="0" FontSize="16" Cursor="Hand"/>
+                    </Grid>
+
+                    <!-- Row 1: Carcass Metrics Cards -->
+                    <Border Grid.Row="1" Background="#F8FAFC" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1.5" CornerRadius="12" Padding="14,10" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="KARKAS NO / KÜPE" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                <TextBlock Text="{Binding DeboningCarcassNumber}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}"/>
+                                <TextBlock Text="{Binding DeboningEarTagNumber}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="KARKAS TOPLAM KG" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                <TextBlock Text="{Binding DeboningTotalCarcassKg, Converter={StaticResource WeightConv}}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource BrushTextPrimary}"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="DAĞITILAN ET KG" FontSize="10" FontWeight="Bold" Foreground="#15803D"/>
+                                <TextBlock Text="{Binding DeboningAssignedTotalKg, Converter={StaticResource WeightConv}}" FontWeight="Bold" FontSize="15" Foreground="#16A34A"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="3">
+                                <TextBlock Text="KALAN / FARK KG" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushAccent}"/>
+                                <TextBlock Text="{Binding DeboningRemainingKg, Converter={StaticResource WeightConv}}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource BrushAccent}"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="TOPLAM ET DEĞERİ (TL)" FontSize="10" FontWeight="Bold" Foreground="#B45309"/>
+                                <TextBlock Text="{Binding DeboningTotalCutValue, Converter={StaticResource CurrencyConv}}" FontWeight="Bold" FontSize="15" Foreground="#B45309"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Row 2: In-place Add Single Cut Bar + Template Button -->
+                    <Border Grid.Row="2" Background="#FFFBEB" BorderBrush="#FDE68A" BorderThickness="1.5" CornerRadius="10" Padding="12,10" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="6"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Bar Header & Standard Template Button -->
+                            <Grid Grid.Row="0">
+                                <TextBlock Text="🥩 YENİ ET PARÇASI EKLE / DÜZENLE:" FontWeight="Bold" FontSize="11" Foreground="#92400E" VerticalAlignment="Center"/>
+                                <Button HorizontalAlignment="Right" Command="{Binding ApplyStandardDeboningTemplateCommand}" 
+                                        Content="⚡ Standart Kasap Parçalama Şablonunu Uygula" Style="{StaticResource FluentSecondaryButton}" Height="28" Padding="10,0" FontSize="11" FontWeight="Bold"/>
+                            </Grid>
+
+                            <!-- Bar Inputs -->
+                            <Grid Grid.Row="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.4*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="1.8*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="1.1*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Region -->
+                                <ComboBox Grid.Column="0" ItemsSource="{Binding AnatomicalRegionsList}" SelectedItem="{Binding NewCutAnatomicalRegion}" Height="36" FontSize="12"/>
+
+                                <!-- Cut Name -->
+                                <ComboBox Grid.Column="2" ItemsSource="{Binding PopularCutsList}" SelectedItem="{Binding NewCutName}" IsEditable="True" Height="36" FontSize="12"/>
+
+                                <!-- Weight Kg + Scale Reader -->
+                                <Grid Grid.Column="4">
+                                    <TextBox Text="{Binding NewCutWeightKg, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="36" FontSize="13" FontWeight="Bold" Padding="10,0,32,0"/>
+                                    <Button HorizontalAlignment="Right" Command="{Binding ReadDeboningBenchScaleCommand}" Content="⚖️" Background="Transparent" BorderThickness="0" FontSize="13" Width="30" Height="36" Cursor="Hand" ToolTip="Tezgah Terazisinden Oku"/>
+                                </Grid>
+
+                                <!-- Quality Grade -->
+                                <ComboBox Grid.Column="6" SelectedItem="{Binding NewCutQualityGrade}" Height="36" FontSize="12">
+                                    <ComboBoxItem Content="1. Sınıf Lüks" IsSelected="True"/>
+                                    <ComboBoxItem Content="2. Sınıf Kasaplık"/>
+                                    <ComboBoxItem Content="Sanayi / Kıymalık"/>
+                                    <ComboBoxItem Content="Kemik / Sakatat"/>
+                                    <ComboBoxItem Content="Fire / Trim"/>
+                                </ComboBox>
+
+                                <!-- Unit Cost -->
+                                <TextBox Grid.Column="8" Text="{Binding NewCutUnitCost, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" MinHeight="36" FontSize="13"/>
+
+                                <!-- Add Button -->
+                                <Button Grid.Column="10" Command="{Binding AddSingleCutToDeboningListCommand}" Content="➕ LİSTEYE EKLE" Style="{StaticResource FluentPrimaryButton}" Height="36" Padding="14,0" FontWeight="Bold" Background="#B45309"/>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <!-- Row 3: Cuts DataGrid with GS1 Print Action -->
+                    <Border Grid.Row="3" Background="#FFFFFF" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1.5" CornerRadius="10" Padding="0" Margin="0,0,0,14">
+                        <DataGrid ItemsSource="{Binding DeboningCuts}" Style="{StaticResource FluentDataGrid}" BorderThickness="0" MaxHeight="380">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Anatomik Bölge" Binding="{Binding AnatomicalRegion}" FontWeight="Bold" Width="1.4*"/>
+                                <DataGridTextColumn Header="Çıkan Et Parçası" Binding="{Binding CutName}" FontWeight="Bold" FontSize="13" Width="1.8*"/>
+                                <DataGridTextColumn Header="Ağırlık (Kg)" Binding="{Binding WeightKg, Converter={StaticResource WeightConv}}" FontWeight="Bold" Foreground="#16A34A" Width="1*"/>
+                                <DataGridTextColumn Header="Randıman (%)" Binding="{Binding YieldPercentage, StringFormat='% {0:N1}'}" FontWeight="SemiBold" Width="0.9*"/>
+                                <DataGridTextColumn Header="Kalite Sınıfı" Binding="{Binding QualityGrade}" Width="1.1*"/>
+                                <DataGridTextColumn Header="Birim Maliyet" Binding="{Binding UnitCostEstimated, Converter={StaticResource CurrencyConv}}" Width="1*"/>
+                                <DataGridTextColumn Header="Toplam Değer" Binding="{Binding TotalCutValue, Converter={StaticResource CurrencyConv}}" FontWeight="Bold" Foreground="#B45309" Width="1.2*"/>
+                                <DataGridTextColumn Header="Lot / Parti" Binding="{Binding LotNumber}" FontSize="11" Width="1.3*"/>
+
+                                <!-- GS1-128 Print Label Action -->
+                                <DataGridTemplateColumn Header="GS1-128 Etiket" Width="1.2*">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Command="{Binding DataContext.PrintDeboningCutLabelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                                    CommandParameter="{Binding}" Content="🖨 Etiket Bas" Style="{StaticResource FluentSecondaryButton}" Height="28" Padding="8,0" FontSize="11" FontWeight="Bold"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Remove Action -->
+                                <DataGridTemplateColumn Header="Sil" Width="0.5*">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Command="{Binding DataContext.RemoveCutFromDeboningListCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                                    CommandParameter="{Binding}" Content="✕" Foreground="#DC2626" Background="Transparent" BorderThickness="0" FontWeight="Bold" FontSize="14" Cursor="Hand"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+
+                    <!-- Row 4: Bottom Action Buttons -->
+                    <Grid Grid.Row="4">
+                        <Button HorizontalAlignment="Left" Command="{Binding CloseDeboningDialogCommand}" Content="Vazgeç / Kapat" Style="{StaticResource FluentSecondaryButton}" Height="42" Padding="20,0"/>
+                        <Button HorizontalAlignment="Right" Command="{Binding SaveDeboningCutsCommand}" Content="✓ PARÇALAMA VE ET ÇIKTILARINI STOKLARA İŞLE" Style="{StaticResource FluentPrimaryButton}" Height="42" Padding="24,0" FontWeight="Bold" Background="#15803D"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- DIALOG 5: TAM İZLENEBİLİRLİK ZİNCİRİ -->
+        <Grid Grid.RowSpan="2" Background="#60000000" Visibility="{Binding IsTraceabilityModalOpen, Converter={StaticResource BoolToVis}}">
+            <Border Width="950" MaxHeight="850" VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Background="#FFFFFF" BorderBrush="{StaticResource BrushBorder}" BorderThickness="2"
+                    CornerRadius="16" Padding="28" Effect="{StaticResource EffectModalShadow}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,16">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Background="{StaticResource BrushAccent}" CornerRadius="8" Width="36" Height="36" Margin="0,0,10,0">
+                                    <TextBlock Text="🧬" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="TAM İZLENEBİLİRLİK ZİNCİRİ" FontSize="16" FontWeight="Bold" Foreground="{StaticResource BrushAccent}"/>
+                                    <TextBlock Text="Çiftlikten Reyona Kırılmaz Pedigri ve Satış Dağılım Ağacı" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button HorizontalAlignment="Right" Command="{Binding CloseTraceabilityModalCommand}" 
+                                    Content="✕" Background="Transparent" Foreground="{StaticResource BrushTextSecondary}" BorderThickness="0" FontSize="16" Cursor="Hand"/>
+                        </Grid>
+
+                        <!-- Timeline Steps -->
+                        <ItemsControl ItemsSource="{Binding CurrentTraceTree.LifecycleSteps}" Margin="0,0,0,16">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="#F8FAFC" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1.5" CornerRadius="10" Padding="14,10" Margin="0,0,0,8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="{Binding StepName}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource BrushAccent}"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="12" Foreground="{StaticResource BrushTextPrimary}" Margin="0,2,0,0"/>
+                                                <TextBlock Text="{Binding Details}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            <Border Grid.Column="1" Background="#F0FDF4" CornerRadius="6" Padding="8,4" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding StatusBadge}" FontWeight="Bold" FontSize="11" Foreground="#15803D"/>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Button HorizontalAlignment="Right" Command="{Binding CloseTraceabilityModalCommand}" Content="Kapat" Style="{StaticResource FluentPrimaryButton}" Height="40" Padding="24,0"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- DIALOG 6: HAYVAN GEÇMİŞİ VE RESMİ MEZBAHA PASAPORTU (PDF/YAZDIR) -->
+        <Grid Grid.RowSpan="2" Background="#60000000" Visibility="{Binding IsPassportDialogOpen, Converter={StaticResource BoolToVis}}">
+            <Border Width="1150" MaxHeight="880" VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Background="#FFFFFF" BorderBrush="{StaticResource BrushBorder}" BorderThickness="2"
+                    CornerRadius="16" Padding="26" Effect="{StaticResource EffectModalShadow}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> <!-- Header -->
+                        <RowDefinition Height="*"/>    <!-- Scrollable Passport View -->
+                        <RowDefinition Height="Auto"/> <!-- Bottom Actions -->
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <Grid Grid.Row="0" Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Background="{StaticResource BrushAccent}" CornerRadius="8" Width="38" Height="38" Margin="0,0,12,0">
+                                <TextBlock Text="📄" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="HAYVAN SOYKÜTÜĞÜ VE RESMİ MEZBAHA İZLENEBİLİRLİK PASAPORTU" FontSize="16" FontWeight="Bold" Foreground="{StaticResource BrushAccent}"/>
+                                <TextBlock Text="Bakanlık onaylı hayvan kimliği, veteriner sağlık muayenesi, karkas tartımı, SEUROP sınıfı ve et dökümü" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        
+                        <Button HorizontalAlignment="Right" Command="{Binding ClosePassportDialogCommand}" 
+                                Content="✕" Background="Transparent" Foreground="{StaticResource BrushTextSecondary}" BorderThickness="0" FontSize="16" Cursor="Hand"/>
+                    </Grid>
+
+                    <!-- Passport Content Box -->
+                    <Border Grid.Row="1" Background="#F8FAFC" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1.5" CornerRadius="12" Padding="20,16" Margin="0,0,0,16">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <!-- Official Top Passport Banner -->
+                                <Border Background="#FFFFFF" BorderBrush="{StaticResource BrushAccentLight}" BorderThickness="1.5" CornerRadius="10" Padding="16,12" Margin="0,0,0,14">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding CurrentPassportDocument.OrganizationName}" FontSize="15" FontWeight="Black" Foreground="{StaticResource BrushAccent}"/>
+                                            <TextBlock Text="T.C. Tarım ve Orman Bakanlığı Onaylı Mezbaha &amp; İzlenebilirlik Pasaportu" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.OfficialFacilityCode, StringFormat='Tesis Onay No: {0}'}" FontSize="10" Foreground="{StaticResource BrushTextMuted}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding CurrentPassportDocument.DocumentNumber, StringFormat='Belge No: {0}'}" FontSize="12" FontWeight="Bold"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.GeneratedDate, StringFormat='Tarih: {0:dd.MM.yyyy HH:mm}'}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.DocumentSecurityHash, StringFormat='Doğrulama: #{0}'}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushAccent}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <!-- 1. Hayvan Kimlik ve Kabul -->
+                                <TextBlock Text="1. 📋 HAYVAN KİMLİK, PEDİGRİ VE KABUL BİLGİLERİ" FontWeight="Bold" FontSize="12" Foreground="{StaticResource BrushAccent}" Margin="0,0,0,6"/>
+                                <Border Background="#FFFFFF" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,12">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="8"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Row="0" Grid.Column="0">
+                                            <TextBlock Text="BAKANLIK KÜPE NO" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.EarTagNumber}" FontSize="14" FontWeight="Black" Foreground="{StaticResource BrushAccent}"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="0" Grid.Column="1">
+                                            <TextBlock Text="TÜR / IRK" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.Breed}" FontSize="13" FontWeight="Bold"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="0" Grid.Column="2">
+                                            <TextBlock Text="CİNSİYET / YAŞ" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.Gender}" FontSize="13" FontWeight="SemiBold"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="0" Grid.Column="3">
+                                            <TextBlock Text="CANLI KANTAR KG" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.LiveWeightKg, Converter={StaticResource WeightConv}}" FontSize="14" FontWeight="Bold" Foreground="#16A34A"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="2" Grid.Column="0">
+                                            <TextBlock Text="ÜRETİCİ / BESİCİ" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.ProducerName}" FontSize="12" FontWeight="SemiBold"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="2" Grid.Column="1">
+                                            <TextBlock Text="MENŞE KONUMU" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.FarmOrigin}" FontSize="12"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="2" Grid.Column="2">
+                                            <TextBlock Text="SEVK İRSALİYESİ" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.WaybillNumber}" FontSize="12"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="2" Grid.Column="3">
+                                            <TextBlock Text="GİRİŞ TARİHİ" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.ArrivalDate, StringFormat='{}{0:dd.MM.yyyy}'}" FontSize="12"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <!-- 2. Veteriner Muayene -->
+                                <TextBlock Text="2. 🩺 VETERİNER HEKİM ANTEMORTEM SAĞLIK RAPORU" FontWeight="Bold" FontSize="12" Foreground="{StaticResource BrushAccent}" Margin="0,0,0,6"/>
+                                <Border Background="#FFFFFF" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,12">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="6"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Row="0" Grid.Column="0">
+                                            <TextBlock Text="VETERİNER HEKİM" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.VetDoctorName}" FontSize="13" FontWeight="Bold"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="0" Grid.Column="1">
+                                            <TextBlock Text="RAPOR NO" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.VetReportNumber}" FontSize="12"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="0" Grid.Column="2">
+                                            <TextBlock Text="VÜCUT SICAKLIĞI" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.VetBodyTemperature, StringFormat='{}{0:N1} °C'}" FontSize="13" FontWeight="Bold"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="0" Grid.Column="3">
+                                            <TextBlock Text="KESİM İZİN DURUMU" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.VetStatus}" FontSize="12" FontWeight="Bold" Foreground="#15803D"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="2" Grid.ColumnSpan="4">
+                                            <TextBlock Text="KLİNİK TANI / BULGULAR" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.VetDiagnosis}" FontSize="12" Foreground="{StaticResource BrushTextPrimary}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <!-- 3. Kesimhane, Karkas & SEUROP -->
+                                <TextBlock Text="3. 🔪 KESİMHANE, KARKAS VE SEUROP KALİTE DERECELENDİRMESİ" FontWeight="Bold" FontSize="12" Foreground="{StaticResource BrushAccent}" Margin="0,0,0,6"/>
+                                <Border Background="#FFFFFF" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,12">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="8"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Row="0" Grid.Column="0">
+                                            <TextBlock Text="KARKAS NO" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.CarcassNumber}" FontSize="14" FontWeight="Bold" Foreground="#B45309"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="0" Grid.Column="1">
+                                            <TextBlock Text="SOĞUK KARKAS KG" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.ColdCarcassWeightKg, Converter={StaticResource WeightConv}}" FontSize="14" FontWeight="Bold" Foreground="#16A34A"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="0" Grid.Column="2">
+                                            <TextBlock Text="KARKAS RANDIMANI" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.CarcassYieldPercentage, StringFormat='{}% {0:N2}'}" FontSize="14" FontWeight="Bold" Foreground="#16A34A"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="0" Grid.Column="3">
+                                            <TextBlock Text="SEUROP SINIFI" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.ConformationClass, StringFormat='Sınıf {0}'}" FontSize="13" FontWeight="Bold"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="2" Grid.Column="0">
+                                            <TextBlock Text="YAĞLILIK SKORU" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.FatCoverScore, StringFormat='{}{0} / 5'}" FontSize="12" FontWeight="SemiBold"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="2" Grid.Column="1">
+                                            <TextBlock Text="MERMERLEŞME (BMS)" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.MarblingScore, StringFormat='BMS {0}'}" FontSize="12" FontWeight="SemiBold"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="2" Grid.Column="2">
+                                            <TextBlock Text="24h pH DEĞERİ" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.PostMortemPh24, StringFormat='{}{0:N2} pH'}" FontSize="12" FontWeight="Bold" Foreground="#15803D"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="2" Grid.Column="3">
+                                            <TextBlock Text="DEPO / KANCA NO" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding CurrentPassportDocument.HookRailNumber}" FontSize="12"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <!-- 4. Parçalama & Et Çıktıları -->
+                                <TextBlock Text="4. 🥩 KARKAS PARÇALAMA VE ANATOMİK ET ÇIKTILARI DÖKÜMÜ" FontWeight="Bold" FontSize="12" Foreground="{StaticResource BrushAccent}" Margin="0,0,0,6"/>
+                                <Border Background="#FFFFFF" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="8" Padding="0">
+                                    <DataGrid ItemsSource="{Binding CurrentPassportDocument.DeboningCuts}" Style="{StaticResource FluentDataGrid}" BorderThickness="0" MaxHeight="220">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Anatomik Bölge" Binding="{Binding AnatomicalRegion}" FontWeight="Bold" Width="1.5*"/>
+                                            <DataGridTextColumn Header="Çıkan Et Parçası" Binding="{Binding CutName}" FontWeight="Bold" Width="2*"/>
+                                            <DataGridTextColumn Header="Ağırlık (Kg)" Binding="{Binding WeightKg, Converter={StaticResource WeightConv}}" FontWeight="Bold" Foreground="#16A34A" Width="1.1*"/>
+                                            <DataGridTextColumn Header="Randıman" Binding="{Binding YieldPercentage, StringFormat='{}% {0:N1}'}" Width="1*"/>
+                                            <DataGridTextColumn Header="Kalite Sınıfı" Binding="{Binding QualityGrade}" Width="1.2*"/>
+                                            <DataGridTextColumn Header="Birim Maliyet" Binding="{Binding UnitCostEstimated, Converter={StaticResource CurrencyConv}}" Width="1.1*"/>
+                                            <DataGridTextColumn Header="Toplam Değer" Binding="{Binding TotalCutValue, Converter={StaticResource CurrencyConv}}" FontWeight="Bold" Foreground="#B45309" Width="1.3*"/>
+                                            <DataGridTextColumn Header="Lot / Parti No" Binding="{Binding LotNumber}" FontSize="11" Width="1.4*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Bottom Action Buttons -->
+                    <Grid Grid.Row="2">
+                        <Button HorizontalAlignment="Left" Command="{Binding ClosePassportDialogCommand}" Content="Kapat" Style="{StaticResource FluentSecondaryButton}" Height="44" Padding="22,0"/>
+                        <Button HorizontalAlignment="Right" Command="{Binding ExportAndPrintPassportPdfCommand}" CommandParameter="{Binding CurrentPassportDocument.EarTagNumber}" 
+                                Content="🖨 RESMİ PDF ÇIKTISI AL / YAZDIR" Style="{StaticResource FluentPrimaryButton}" Height="44" Padding="28,0" FontWeight="Bold" Background="#DC2626"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ========================================================================= -->
+        <!-- DIALOG 7: GERÇEK MALİYET & KÂRLILIK ANALİZİ (TRUE COST ROLLUP)             -->
+        <!-- ========================================================================= -->
+        <Grid Grid.RowSpan="2" Background="#60000000" Visibility="{Binding IsTrueCostDialogOpen, Converter={StaticResource BoolToVis}}">
+            <Border Width="950" MaxHeight="850" VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Background="#FFFFFF" BorderBrush="{StaticResource BrushBorder}" BorderThickness="2"
+                    CornerRadius="16" Padding="26" Effect="{StaticResource EffectModalShadow}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <Grid Grid.Row="0" Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Background="#15803D" CornerRadius="8" Width="38" Height="38" Margin="0,0,12,0">
+                                <TextBlock Text="💰" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="GERÇEK MALİYET &amp; KÂRLILIK ANALİZİ (ACTIVITY-BASED COSTING)" FontSize="16" FontWeight="Bold" Foreground="#15803D"/>
+                                <TextBlock Text="Hayvan Alım, Nakil, Kesim, Soğutma ve Parçalama Giderleri ile Yan Ürün Kredileri Dağılımı" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        
+                        <Button HorizontalAlignment="Right" Command="{Binding CloseTrueCostDialogCommand}" 
+                                Content="✕" Background="Transparent" Foreground="{StaticResource BrushTextSecondary}" BorderThickness="0" FontSize="16" Cursor="Hand"/>
+                    </Grid>
+
+                    <!-- Content -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,16">
+                        <StackPanel>
+                            <!-- Top Metric Summary Cards -->
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1.5" CornerRadius="10" Padding="14,12">
+                                    <StackPanel>
+                                        <TextBlock Text="TOPLAM BRÜT MALİYET" FontSize="11" FontWeight="Bold" Foreground="#991B1B"/>
+                                        <TextBlock Text="{Binding CurrentTrueCostRollup.TotalGrossCost, Converter={StaticResource CurrencyConv}}" FontSize="20" FontWeight="Black" Foreground="#DC2626" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="2" Background="#F0FDF4" BorderBrush="#BBF7D0" BorderThickness="1.5" CornerRadius="10" Padding="14,12">
+                                    <StackPanel>
+                                        <TextBlock Text="YAN ÜRÜN KREDİLERİ (-)" FontSize="11" FontWeight="Bold" Foreground="#166534"/>
+                                        <TextBlock Text="{Binding CurrentTrueCostRollup.TotalByproductCredits, Converter={StaticResource CurrencyConv}}" FontSize="20" FontWeight="Black" Foreground="#15803D" Margin="0,4,0,0"/>
+                                        <TextBlock Text="Deri + Sakatat + Yağ Geliri" FontSize="10" Foreground="#15803D"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="4" Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1.5" CornerRadius="10" Padding="14,12">
+                                    <StackPanel>
+                                        <TextBlock Text="NET KARKAS KG MALİYETİ" FontSize="11" FontWeight="Bold" Foreground="#1E40AF"/>
+                                        <TextBlock Text="{Binding CurrentTrueCostRollup.TrueCostPerCarcassKg, Converter={StaticResource CurrencyConv}}" FontSize="20" FontWeight="Black" Foreground="#2563EB" Margin="0,4,0,0"/>
+                                        <TextBlock Text="{Binding CurrentTrueCostRollup.ColdCarcassWeightKg, StringFormat='Soğuk Karkas: {0:N1} kg'}" FontSize="10" Foreground="#2563EB"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <!-- Cost Breakdown Table -->
+                            <TextBlock Text="MALİYET KALEMLERİ DETAY TABLOSU (ABC METODU)" FontWeight="Bold" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,8"/>
+                            <Border Background="#F8FAFC" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="10" Padding="16,12" Margin="0,0,0,16">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="1. Canlı Hayvan Alım Maliyeti:" FontSize="12" Margin="0,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentTrueCostRollup.AnimalPurchaseCost, Converter={StaticResource CurrencyConv}}" FontWeight="Bold" FontSize="12"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="2. Nakliye &amp; Lojistik Gideri:" FontSize="12" Margin="0,3"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CurrentTrueCostRollup.LivestockTransportCost, Converter={StaticResource CurrencyConv}}" FontWeight="Bold" FontSize="12"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="3. Kesimhane İşçilik &amp; Hat Gideri:" FontSize="12" Margin="0,3"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding CurrentTrueCostRollup.SlaughterLaborCost, Converter={StaticResource CurrencyConv}}" FontWeight="Bold" FontSize="12"/>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="4. Soğuk Hava Deposu Elektrik/Enerji:" FontSize="12" Margin="0,3"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding CurrentTrueCostRollup.ColdStorageChillingEnergyCost, Converter={StaticResource CurrencyConv}}" FontWeight="Bold" FontSize="12"/>
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="5. Kemiksizleştirme &amp; Parçalama İşçiliği:" FontSize="12" Margin="0,3"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding CurrentTrueCostRollup.DeboningLaborCost, Converter={StaticResource CurrencyConv}}" FontWeight="Bold" FontSize="12"/>
+
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="6. Genel Tesis ve Yönetim Payı:" FontSize="12" Margin="0,3"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding CurrentTrueCostRollup.GeneralFacilityOverheadCost, Converter={StaticResource CurrencyConv}}" FontWeight="Bold" FontSize="12"/>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <Grid Grid.Row="2">
+                        <Button HorizontalAlignment="Right" Command="{Binding CloseTrueCostDialogCommand}" Content="Kapat" Style="{StaticResource FluentPrimaryButton}" Height="40" Padding="24,0"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ========================================================================= -->
+        <!-- DIALOG 8: ACİL GERİ ÇAĞIRMA & BLOKE ETKİ ALANI (1-CLICK FOOD RECALL)        -->
+        <!-- ========================================================================= -->
+        <Grid Grid.RowSpan="2" Background="#60000000" Visibility="{Binding IsRecallDialogOpen, Converter={StaticResource BoolToVis}}">
+            <Border Width="950" MaxHeight="850" VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Background="#FFFFFF" BorderBrush="#DC2626" BorderThickness="2.5"
+                    CornerRadius="16" Padding="26" Effect="{StaticResource EffectModalShadow}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <Grid Grid.Row="0" Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Background="#DC2626" CornerRadius="8" Width="38" Height="38" Margin="0,0,12,0">
+                                <TextBlock Text="🚨" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="1-TIK ACİL GIDA GERİ ÇAĞIRMA &amp; KARANTİNA KONTROLÜ (HACCP)" FontSize="16" FontWeight="Black" Foreground="#DC2626"/>
+                                <TextBlock Text="Bakanlık / Kalite Alarmı: Tek bir küpe no ile geriye ve ileriye tüm lotları anında bloke eder." FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        
+                        <Button HorizontalAlignment="Right" Command="{Binding CloseRecallDialogCommand}" 
+                                Content="✕" Background="Transparent" Foreground="{StaticResource BrushTextSecondary}" BorderThickness="0" FontSize="16" Cursor="Hand"/>
+                    </Grid>
+
+                    <!-- Body -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,16">
+                        <StackPanel>
+                            <!-- Search & Trigger Box -->
+                            <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1.5" CornerRadius="10" Padding="16,14" Margin="0,0,0,16">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="10"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Row="0" Grid.Column="0">
+                                        <TextBlock Text="KÖK NEDEN KÜPE / KARKAS NO" FontSize="11" FontWeight="Bold" Foreground="#991B1B"/>
+                                        <TextBox Text="{Binding SearchTraceabilityQuery, UpdateSourceTrigger=PropertyChanged}" 
+                                                 Style="{StaticResource FluentTextBox}" Height="38" FontSize="13" FontWeight="Bold" Margin="0,4,0,0"/>
+                                    </StackPanel>
+
+                                    <Button Grid.Row="0" Grid.Column="2" VerticalAlignment="Bottom"
+                                            Command="{Binding TriggerEmergencyRecallCommand}"
+                                            Content="🚨 1-TIKLA BLOKAJI BAŞLAT" Style="{StaticResource FluentPrimaryButton}" Height="38" Padding="20,0" FontWeight="Bold" Background="#DC2626"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Recall Impact Result (If any) -->
+                            <Border Background="#F8FAFC" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1.5" CornerRadius="10" Padding="16,12">
+                                <StackPanel>
+                                    <TextBlock Text="SON GERİ ÇAĞIRMA RAPORU &amp; BLOKAJ ETKİ ALANI" FontWeight="Bold" FontSize="12" Foreground="{StaticResource BrushAccent}" Margin="0,0,0,8"/>
+                                    <Grid Margin="0,0,0,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="VAKA NO" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding LastRecallResult.CaseNumber}" FontSize="13" FontWeight="Bold" Foreground="#DC2626"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="ETKİLENEN LOTLAR" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding LastRecallResult.AffectedLotsCount, StringFormat='{}{0} Adet Lot'}" FontSize="13" FontWeight="Bold"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="BLOKE EDİLEN ET" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                            <TextBlock Text="{Binding LastRecallResult.TotalRecalledWeightKg, Converter={StaticResource WeightConv}}" FontSize="13" FontWeight="Bold" Foreground="#DC2626"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Table of Blocked Items -->
+                                    <DataGrid ItemsSource="{Binding LastRecallResult.AffectedItems}" Style="{StaticResource FluentDataGrid}" BorderThickness="0" MaxHeight="200">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Parti / Lot No" Binding="{Binding LotNumber}" FontWeight="Bold" Width="1.5*"/>
+                                            <DataGridTextColumn Header="Ürün Adı" Binding="{Binding ProductName}" Width="2*"/>
+                                            <DataGridTextColumn Header="Bloke Ağırlık" Binding="{Binding QuantityKg, Converter={StaticResource WeightConv}}" FontWeight="Bold" Foreground="#DC2626" Width="1.2*"/>
+                                            <DataGridTextColumn Header="Depo Konumu" Binding="{Binding WarehouseLocation}" Width="1.5*"/>
+                                            <DataGridTextColumn Header="Müşteri Durumu" Binding="{Binding CustomerName}" Width="2*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <Grid Grid.Row="2">
+                        <Button HorizontalAlignment="Right" Command="{Binding CloseRecallDialogCommand}" Content="Kapat" Style="{StaticResource FluentSecondaryButton}" Height="40" Padding="24,0"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+    </Grid>
+</UserControl>

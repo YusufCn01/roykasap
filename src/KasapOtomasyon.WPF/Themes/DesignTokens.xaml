@@ -1,0 +1,106 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- ========================================== -->
+    <!-- 1. SPACING & RADIUS DESIGN TOKENS           -->
+    <!-- ========================================== -->
+    <CornerRadius x:Key="RadiusCard">14</CornerRadius>
+    <CornerRadius x:Key="RadiusButton">10</CornerRadius>
+    <CornerRadius x:Key="RadiusInput">8</CornerRadius>
+    <CornerRadius x:Key="RadiusBadge">6</CornerRadius>
+    <CornerRadius x:Key="RadiusModal">18</CornerRadius>
+
+    <Thickness x:Key="SpacingCardPadding">20</Thickness>
+    <Thickness x:Key="SpacingPageMargin">20</Thickness>
+    <Thickness x:Key="SpacingInputPadding">14,10</Thickness>
+
+    <!-- ========================================== -->
+    <!-- 2. TYPOGRAPHY                              -->
+    <!-- ========================================== -->
+    <FontFamily x:Key="FontMain">Segoe UI Variable, Segoe UI, Inter, Roboto, sans-serif</FontFamily>
+    <FontFamily x:Key="FontMono">Consolas, Cascadia Code, monospace</FontFamily>
+
+    <sys:Double x:Key="FontSizeTitleH1">26</sys:Double>
+    <sys:Double x:Key="FontSizeTitleH2">20</sys:Double>
+    <sys:Double x:Key="FontSizeTitleH3">16</sys:Double>
+    <sys:Double x:Key="FontSizeBody">14</sys:Double>
+    <sys:Double x:Key="FontSizeInput">15</sys:Double>
+    <sys:Double x:Key="FontSizeCaption">12</sys:Double>
+    <sys:Double x:Key="FontSizeBadge">11</sys:Double>
+
+    <!-- ========================================== -->
+    <!-- 3. BRAND & LIGHT THEME COLOR PALETTE       -->
+    <!-- ========================================== -->
+    <!-- Clean Crisp White Backgrounds -->
+    <Color x:Key="ColorBgMain">#F1F5F9</Color>        <!-- Soft light slate background -->
+    <Color x:Key="ColorBgSurface">#FFFFFF</Color>     <!-- Pure white cards and headers -->
+    <Color x:Key="ColorBgCard">#FFFFFF</Color>        <!-- White card surface -->
+    <Color x:Key="ColorBgCardHover">#FEF2F2</Color>   <!-- Soft warm crimson hover tint -->
+    <Color x:Key="ColorBgInput">#F8FAFC</Color>       <!-- Light input background -->
+    <Color x:Key="ColorBorder">#E2E8F0</Color>        <!-- Clean subtle border -->
+    <Color x:Key="ColorBorderLight">#CBD5E1</Color>   <!-- Focused border -->
+
+    <!-- Primary Butcher Red & Crimson Accents -->
+    <Color x:Key="ColorAccent">#B3261E</Color>        <!-- Rich Crimson Red -->
+    <Color x:Key="ColorAccentLight">#DC2626</Color>   <!-- Vibrant Butcher Red -->
+    <Color x:Key="ColorAccentDark">#991B1B</Color>    <!-- Deep Burgundy -->
+    <Color x:Key="ColorAccentMuted">#FEE2E2</Color>   <!-- Light Red Tint Badge -->
+
+    <!-- Functional States -->
+    <Color x:Key="ColorSuccess">#16A34A</Color>       <!-- Emerald Green -->
+    <Color x:Key="ColorWarning">#D97706</Color>       <!-- Amber Warning -->
+    <Color x:Key="ColorDanger">#DC2626</Color>        <!-- Red Danger -->
+    <Color x:Key="ColorInfo">#2563EB</Color>          <!-- Royal Blue -->
+
+    <!-- High-Contrast Typography (Crisp Dark Text on White) -->
+    <Color x:Key="ColorTextPrimary">#0F172A</Color>   <!-- Very dark slate (max readability) -->
+    <Color x:Key="ColorTextSecondary">#475569</Color> <!-- Slate secondary -->
+    <Color x:Key="ColorTextMuted">#64748B</Color>     <!-- Muted captions -->
+
+    <!-- Solid Color Brushes -->
+    <SolidColorBrush x:Key="BrushBgMain" Color="{StaticResource ColorBgMain}"/>
+    <SolidColorBrush x:Key="BrushBgSurface" Color="{StaticResource ColorBgSurface}"/>
+    <SolidColorBrush x:Key="BrushBgCard" Color="{StaticResource ColorBgCard}"/>
+    <SolidColorBrush x:Key="BrushBgCardHover" Color="{StaticResource ColorBgCardHover}"/>
+    <SolidColorBrush x:Key="BrushBgInput" Color="{StaticResource ColorBgInput}"/>
+    <SolidColorBrush x:Key="BrushBorder" Color="{StaticResource ColorBorder}"/>
+    <SolidColorBrush x:Key="BrushBorderLight" Color="{StaticResource ColorBorderLight}"/>
+
+    <SolidColorBrush x:Key="BrushAccent" Color="{StaticResource ColorAccent}"/>
+    <SolidColorBrush x:Key="BrushAccentLight" Color="{StaticResource ColorAccentLight}"/>
+    <SolidColorBrush x:Key="BrushAccentDark" Color="{StaticResource ColorAccentDark}"/>
+    <SolidColorBrush x:Key="BrushAccentMuted" Color="{StaticResource ColorAccentMuted}"/>
+
+    <SolidColorBrush x:Key="BrushSuccess" Color="{StaticResource ColorSuccess}"/>
+    <SolidColorBrush x:Key="BrushWarning" Color="{StaticResource ColorWarning}"/>
+    <SolidColorBrush x:Key="BrushDanger" Color="{StaticResource ColorDanger}"/>
+    <SolidColorBrush x:Key="BrushInfo" Color="{StaticResource ColorInfo}"/>
+
+    <SolidColorBrush x:Key="BrushTextPrimary" Color="{StaticResource ColorTextPrimary}"/>
+    <SolidColorBrush x:Key="BrushTextSecondary" Color="{StaticResource ColorTextSecondary}"/>
+    <SolidColorBrush x:Key="BrushTextMuted" Color="{StaticResource ColorTextMuted}"/>
+
+    <!-- Gradients -->
+    <LinearGradientBrush x:Key="BrushLoginBgGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#F8FAFC" Offset="0.0"/>
+        <GradientStop Color="#FEE2E2" Offset="0.5"/>
+        <GradientStop Color="#F1F5F9" Offset="1.0"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="BrushCardGradient" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#FFFFFF" Offset="0.0"/>
+        <GradientStop Color="#FBFBFD" Offset="1.0"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="BrushPrimaryBtnGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#DC2626" Offset="0.0"/>
+        <GradientStop Color="#B3261E" Offset="1.0"/>
+    </LinearGradientBrush>
+
+    <!-- Clean Soft Drop Shadows for White Cards -->
+    <DropShadowEffect x:Key="EffectCardShadow" BlurRadius="14" ShadowDepth="3" Direction="270" Color="#94A3B8" Opacity="0.18"/>
+    <DropShadowEffect x:Key="EffectCardHoverShadow" BlurRadius="22" ShadowDepth="6" Direction="270" Color="#DC2626" Opacity="0.22"/>
+    <DropShadowEffect x:Key="EffectModalShadow" BlurRadius="32" ShadowDepth="8" Direction="270" Color="#000000" Opacity="0.25"/>
+
+</ResourceDictionary>

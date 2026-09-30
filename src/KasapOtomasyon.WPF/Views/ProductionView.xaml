@@ -1,0 +1,351 @@
+<UserControl x:Class="KasapOtomasyon.WPF.Views.ProductionView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:conv="clr-namespace:KasapOtomasyon.WPF.Converters"
+             xmlns:loc="clr-namespace:KasapOtomasyon.WPF.Markup"
+             mc:Ignorable="d" 
+             d:DesignHeight="850" d:DesignWidth="1200"
+             Background="{StaticResource BrushBackground}"
+             Foreground="{StaticResource BrushTextPrimary}">
+
+    <UserControl.Resources>
+        <conv:CurrencyFormatConverter x:Key="CurrencyConv"/>
+        <conv:WeightFormatConverter x:Key="WeightConv"/>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top Header & Lot Selection -->
+        <Border Grid.Row="0" Style="{StaticResource FluentCard}" Padding="16,14" Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="{StaticResource BrushAccent}" CornerRadius="8" Width="36" Height="36" Margin="0,0,12,0">
+                        <TextBlock Text="🔪" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel>
+                        <TextBlock Text="{loc:Loc prod.title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource BrushAccentLight}"/>
+                        <TextBlock Text="{loc:Loc prod.subtitle}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Active Lot Selector -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="{loc:Loc prod.lotSelect}" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <ComboBox ItemsSource="{Binding AnimalLots}" SelectedItem="{Binding SelectedLot}"
+                              DisplayMemberPath="LotNumber" Width="200" Height="34" Margin="0,0,16,0"
+                              SelectionChanged="LotComboBox_SelectionChanged"/>
+
+                    <TextBlock Text="{loc:Loc prod.recipeSelect}" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <ComboBox ItemsSource="{Binding Templates}" SelectedItem="{Binding SelectedTemplate}"
+                              DisplayMemberPath="Name" Width="220" Height="34"
+                              SelectionChanged="TemplateComboBox_SelectionChanged"/>
+                </StackPanel>
+
+                <!-- Status Text & Quick Action -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Command="{Binding OpenReprocessingCommand}" 
+                            Content="{loc:Loc prod.reprocessingBtn}" 
+                            Style="{StaticResource FluentPrimaryButton}" Height="36" Padding="14,0" Margin="0,0,10,0" FontWeight="Bold" Background="#9E1B32"/>
+                    <Button Command="{Binding OpenProcessingRecipeModalCommand}" 
+                            Content="{loc:Loc prod.deliRecipeBtn}" 
+                            Style="{StaticResource FluentPrimaryButton}" Height="36" Padding="14,0" Margin="0,0,12,0" FontWeight="Bold" Background="#B45309"/>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource BrushSuccess}" 
+                               FontWeight="SemiBold" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Middle Body: BOM Cutting Table & Input Summary Cards -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2.2*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- LEFT: Parçalama Ağacı Table (BOM) -->
+            <Border Grid.Column="0" Style="{StaticResource FluentCard}" Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+                        <TextBlock Text="Parçalama Çıktıları &amp; Maliyet Dağılımı" FontSize="15" FontWeight="Bold"/>
+                        <TextBlock Text="(Ağırlıkları güncelleyebilirsiniz, randıman otomatik hesaplanır)" 
+                                   Foreground="{StaticResource BrushTextMuted}" FontSize="11" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                    </StackPanel>
+
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding CurrentOutputs}" 
+                              Style="{StaticResource FluentDataGrid}" BorderThickness="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Parça / Çıktı Adı" Binding="{Binding CutName}" Width="1.8*" FontWeight="SemiBold"/>
+                            
+                            <!-- Weight Input (Editable) -->
+                            <DataGridTemplateColumn Header="Ağırlık (Kg)" Width="1.2*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBox Text="{Binding WeightKg, StringFormat='{}{0:0.00}', UpdateSourceTrigger=PropertyChanged}"
+                                                 Style="{StaticResource FluentTextBox}" Height="30" FontSize="12" FontWeight="Bold"
+                                                 Foreground="#34D399" TextAlignment="Right" Padding="6,2"
+                                                 TextChanged="WeightTextBox_TextChanged"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTextColumn Header="Randıman %" Binding="{Binding YieldPercentage, StringFormat='{}{0:0.0} %'}" Width="1*" FontWeight="SemiBold"/>
+                            <DataGridTextColumn Header="Birim Maliyet" Binding="{Binding CostPerKg, Converter={StaticResource CurrencyConv}}" Width="1.2*"/>
+                            <DataGridTextColumn Header="Toplam Maliyet" Binding="{Binding TotalCost, Converter={StaticResource CurrencyConv}}" Width="1.3*" FontWeight="Bold"/>
+                            
+                            <!-- Byproduct / Waste Badge -->
+                            <DataGridTemplateColumn Header="Tür" Width="90">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border CornerRadius="4" Padding="6,2" HorizontalAlignment="Center">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="#3F3F46"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsWaste}" Value="True">
+                                                            <Setter Property="Background" Value="#7F1D1D"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsByproduct}" Value="True">
+                                                            <Setter Property="Background" Value="#78350F"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock FontSize="10" FontWeight="SemiBold" Foreground="#FFFFFF">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="Et / Çıktı"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsWaste}" Value="True">
+                                                                <Setter Property="Text" Value="Fire / Atık"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsByproduct}" Value="True">
+                                                                <Setter Property="Text" Value="Sakatat"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <!-- RIGHT: Yield Summary & Production Action -->
+            <StackPanel Grid.Column="2">
+                <!-- Lot Summary Card -->
+                <Border Style="{StaticResource FluentCard}" Padding="18" Margin="0,0,0,14">
+                    <StackPanel>
+                        <TextBlock Text="Karkas Girdi Bilgileri" FontSize="14" FontWeight="Bold" Margin="0,0,0,12"/>
+
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="Küpe / Parti No" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="{Binding SelectedLot.LotNumber}" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="Hayvan Türü" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="{Binding SelectedLot.AnimalType}" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="Karkas Girdisi" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="{Binding SelectedLot.CarcassWeightKg, Converter={StaticResource WeightConv}}" FontWeight="Bold" Foreground="#34D399" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="Girdi Alış Tutarı" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="{Binding SelectedLot.PurchasePriceTotal, Converter={StaticResource CurrencyConv}}" FontWeight="Bold" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="Karkas Kg Maliyeti" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="{Binding SelectedLot.UnitCostPerKg, Converter={StaticResource CurrencyConv}}" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Yield & Efficiency Card -->
+                <Border Style="{StaticResource FluentCard}" Padding="18" Margin="0,0,0,14">
+                    <StackPanel>
+                        <TextBlock Text="Randıman &amp; Çıktı Hesabı" FontSize="14" FontWeight="Bold" Margin="0,0,0,12"/>
+
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="Toplam Net Et Çıktısı" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="{Binding SimulatedTotalOutputWeight, Converter={StaticResource WeightConv}}" FontWeight="Bold" Foreground="#34D399" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="Toplam Fire / Kemik" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="{Binding SimulatedTotalWasteWeight, Converter={StaticResource WeightConv}}" FontWeight="Bold" Foreground="{StaticResource BrushDanger}" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Separator Background="{StaticResource BrushBorder}" Margin="0,8,0,10"/>
+
+                        <Grid Margin="0,0,0,8">
+                            <TextBlock Text="VERİM (RANDIMAN)" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding SimulatedYieldPercentage, StringFormat='{}{0:0.0} %'}" 
+                                       FontWeight="Bold" FontSize="24" Foreground="{StaticResource BrushAccentLight}" HorizontalAlignment="Right"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Execute Button -->
+                <Button Command="{Binding CompleteProductionOrderCommand}" 
+                        Content="✔ ÜRETİM EMRİNİ TAMAMLA VE STOKLARA AKTAR" 
+                        Style="{StaticResource FluentSuccessButton}" Height="54" FontSize="13"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Bottom: New Lot Quick Drawer -->
+        <Border Grid.Row="2" Style="{StaticResource FluentCard}" Padding="16,12" Margin="0,16,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="Hızlı Canlı/Karkas Parti Girişi:" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,16,0"/>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Küpe No:" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBox Text="{Binding NewEarTagNumber, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Width="120" Height="32" Margin="0,0,12,0"/>
+
+                    <TextBlock Text="Tedarikçi:" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBox Text="{Binding NewSupplier, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Width="130" Height="32" Margin="0,0,12,0"/>
+
+                    <TextBlock Text="Karkas (Kg):" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBox Text="{Binding NewCarcassWeight, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Width="80" Height="32" Margin="0,0,12,0"/>
+
+                    <TextBlock Text="Alış Tutarı (₺):" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBox Text="{Binding NewPurchasePrice, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Width="90" Height="32"/>
+                </StackPanel>
+
+                <Button Grid.Column="2" Command="{Binding CreateNewLotCommand}" 
+                        Content="+ Parti Kaydet" Style="{StaticResource FluentPrimaryButton}" Padding="14,6" Height="34"/>
+            </Grid>
+        </Border>
+
+        <!-- ========================================================================= -->
+        <!-- DIALOG: İLERİ ET İŞLEME & ŞARKÜTERİ REÇETE (BOM) PARTİ ÜRETİMİ           -->
+        <!-- ========================================================================= -->
+        <Grid Grid.RowSpan="3" Background="#60000000" Visibility="{Binding IsProcessingRecipeModalOpen, Converter={StaticResource BoolToVis}}">
+            <Border Width="920" MaxHeight="800" VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Background="#FFFFFF" BorderBrush="{StaticResource BrushBorder}" BorderThickness="2"
+                    CornerRadius="16" Padding="26" Effect="{StaticResource EffectModalShadow}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <Grid Grid.Row="0" Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Background="#B45309" CornerRadius="8" Width="38" Height="38" Margin="0,0,12,0">
+                                <TextBlock Text="🥓" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="ŞARKÜTERİ &amp; İŞLENMİŞ ET ÜRETİMİ (BOM REÇETE MOTORU)" FontSize="16" FontWeight="Bold" Foreground="#B45309"/>
+                                <TextBlock Text="Kangal Sucuk, Kasap Köfte, Satır Kıyma Reçeteleri ve Parti Üretim Emri" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        
+                        <Button HorizontalAlignment="Right" Command="{Binding CloseProcessingRecipeModalCommand}" 
+                                Content="✕" Background="Transparent" Foreground="{StaticResource BrushTextSecondary}" BorderThickness="0" FontSize="16" Cursor="Hand"/>
+                    </Grid>
+
+                    <!-- Body -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,16">
+                        <StackPanel>
+                            <!-- Recipe Selector & Batch Target Input -->
+                            <Border Background="#FFFBEB" BorderBrush="#FDE68A" BorderThickness="1.5" CornerRadius="10" Padding="16,14" Margin="0,0,0,16">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*"/>
+                                        <ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="1.2*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="ÜRETİLECEK ŞARKÜTERİ REÇETESİ" FontSize="11" FontWeight="Bold" Foreground="#92400E"/>
+                                        <ComboBox ItemsSource="{Binding ProcessingRecipes}" SelectedItem="{Binding SelectedProcessingRecipe}"
+                                                  DisplayMemberPath="RecipeName" Height="38" Margin="0,4,0,0" FontSize="13" FontWeight="SemiBold"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="HEDEF PARTİ MİKTARI (KG)" FontSize="11" FontWeight="Bold" Foreground="#92400E"/>
+                                        <TextBox Text="{Binding BatchTargetWeightKg, UpdateSourceTrigger=PropertyChanged}" 
+                                                 Style="{StaticResource FluentTextBox}" Height="38" FontSize="15" FontWeight="Bold" Foreground="#B45309" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Recipe Details & Ingredients Table -->
+                            <TextBlock Text="REÇETE İÇERİĞİ VE HAMMADDE ORANLARI (BOM)" FontWeight="Bold" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,8"/>
+                            <Border Background="#F8FAFC" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="10" Padding="0" Margin="0,0,0,16">
+                                <DataGrid ItemsSource="{Binding SelectedProcessingRecipe.RecipeItems}" Style="{StaticResource FluentDataGrid}" BorderThickness="0" MaxHeight="220">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Hammadde / Katkı Adı" Binding="{Binding ItemName}" FontWeight="Bold" Width="2.5*"/>
+                                        <DataGridTextColumn Header="Hammadde Tipi" Binding="{Binding ItemType}" Width="1.5*"/>
+                                        <DataGridTextColumn Header="Reçete Oranı" Binding="{Binding PercentageRatio, StringFormat='{}% {0:N1}'}" FontWeight="Bold" Foreground="#B45309" Width="1.2*"/>
+                                        <DataGridTextColumn Header="Standart Kg Maliyeti" Binding="{Binding StandardUnitCost, Converter={StaticResource CurrencyConv}}" Width="1.5*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Border>
+
+                            <!-- Yield Expectation Banner -->
+                            <Border Background="#F0FDF4" BorderBrush="#BBF7D0" BorderThickness="1" CornerRadius="8" Padding="14,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Beklenen Olgunlaşma &amp; Kuruma Randımanı:" FontWeight="Bold" FontSize="12" Foreground="#166534"/>
+                                        <TextBlock Text="{Binding SelectedProcessingRecipe.Description}" FontSize="11" Foreground="#15803D"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="{Binding SelectedProcessingRecipe.ExpectedYieldPercentage, StringFormat='{}% {0:N1}'}" 
+                                               FontWeight="Black" FontSize="18" Foreground="#16A34A" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Footer Action Buttons -->
+                    <Grid Grid.Row="2">
+                        <Button HorizontalAlignment="Left" Command="{Binding CloseProcessingRecipeModalCommand}" Content="Vazgeç" Style="{StaticResource FluentSecondaryButton}" Height="42" Padding="20,0"/>
+                        <Button HorizontalAlignment="Right" Command="{Binding ExecuteProcessingBatchCommand}" 
+                                Content="✓ PARTİ ÜRETİMİNİ BAŞLAT VE STOKLARA İŞLE" Style="{StaticResource FluentPrimaryButton}" Height="42" Padding="24,0" FontWeight="Bold" Background="#B45309"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+    </Grid>
+</UserControl>

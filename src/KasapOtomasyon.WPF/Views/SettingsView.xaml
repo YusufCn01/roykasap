@@ -1,0 +1,105 @@
+<UserControl x:Class="KasapOtomasyon.WPF.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:conv="clr-namespace:KasapOtomasyon.WPF.Converters"
+             xmlns:loc="clr-namespace:KasapOtomasyon.WPF.Markup"
+             mc:Ignorable="d" 
+             d:DesignHeight="800" d:DesignWidth="1100"
+             Background="{StaticResource BrushBackground}"
+             Foreground="{StaticResource BrushTextPrimary}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Border Grid.Row="0" Style="{StaticResource FluentCard}" Padding="20,16" Margin="0,0,0,20">
+                <Grid>
+                    <StackPanel>
+                        <TextBlock Text="{loc:Loc settings.title}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushAccentLight}"/>
+                        <TextBlock Text="{loc:Loc settings.subtitle}" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource BrushSuccess}" 
+                               FontWeight="SemiBold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <!-- Hardware & Integrations Grid -->
+            <Grid Grid.Row="1" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Terazi / Scale Settings Card -->
+                <Border Grid.Column="0" Style="{StaticResource FluentCard}" Padding="20">
+                    <StackPanel>
+                        <TextBlock Text="{loc:Loc settings.scaleSettingsTitle}" FontSize="15" FontWeight="Bold" Margin="0,0,0,14"/>
+
+                        <TextBlock Text="{loc:Loc settings.scaleBrand}" Foreground="{StaticResource BrushTextSecondary}" FontSize="12" Margin="0,0,0,4"/>
+                        <ComboBox ItemsSource="{Binding ScaleBrands}" SelectedItem="{Binding SelectedScaleBrand}"
+                                  Background="{StaticResource BrushSurface}" Foreground="#000000" Height="36" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="{loc:Loc settings.scalePort}" Foreground="{StaticResource BrushTextSecondary}" FontSize="12" Margin="0,0,0,4"/>
+                        <ComboBox ItemsSource="{Binding ScalePorts}" SelectedItem="{Binding SelectedScalePort}"
+                                  Background="{StaticResource BrushSurface}" Foreground="#000000" Height="36" Margin="0,0,0,16"/>
+
+                        <Button Command="{Binding TestScaleConnectionCommand}" 
+                                Content="{loc:Loc settings.testScaleBtn}" Style="{StaticResource FluentSecondaryButton}" Height="38"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- SMS & E-Invoice Card -->
+                <Border Grid.Column="2" Style="{StaticResource FluentCard}" Padding="20">
+                    <StackPanel>
+                        <TextBlock Text="{loc:Loc settings.integrationsTitle}" FontSize="15" FontWeight="Bold" Margin="0,0,0,14"/>
+
+                        <TextBlock Text="{loc:Loc settings.smsProvider}" Foreground="{StaticResource BrushTextSecondary}" FontSize="12" Margin="0,0,0,4"/>
+                        <ComboBox ItemsSource="{Binding SmsProviders}" SelectedItem="{Binding SelectedSmsProvider}"
+                                  Background="{StaticResource BrushSurface}" Foreground="#000000" Height="36" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="{loc:Loc settings.einvoiceProvider}" Foreground="{StaticResource BrushTextSecondary}" FontSize="12" Margin="0,0,0,4"/>
+                        <ComboBox ItemsSource="{Binding EInvoiceIntegrators}" SelectedItem="{Binding SelectedEInvoiceIntegrator}"
+                                  Background="{StaticResource BrushSurface}" Foreground="#000000" Height="36" Margin="0,0,0,16"/>
+
+                        <Button Content="{loc:Loc settings.testIntegratorBtn}" Style="{StaticResource FluentSecondaryButton}" Height="38"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Backup & Restore Card -->
+            <Border Grid.Row="2" Style="{StaticResource FluentCard}" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="{loc:Loc settings.backupTitle}" FontSize="15" FontWeight="Bold" Margin="0,0,0,14"/>
+
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="{loc:Loc settings.backupDir}" Foreground="{StaticResource BrushTextSecondary}" FontSize="12" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding BackupDirectory, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="36"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="1" Command="{Binding CreateBackupCommand}" 
+                                Content="{loc:Loc settings.backupNowBtn}" Style="{StaticResource FluentPrimaryButton}" 
+                                Height="36" Margin="12,18,0,0" Padding="18,0"/>
+                    </Grid>
+
+                    <TextBlock Text="{loc:Loc settings.backupHistory}" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <ListBox ItemsSource="{Binding BackupFiles}" Height="120" Background="{StaticResource BrushSurface}" 
+                             Foreground="{StaticResource BrushTextPrimary}" BorderBrush="{StaticResource BrushBorder}"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

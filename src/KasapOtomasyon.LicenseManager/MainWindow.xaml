@@ -1,0 +1,176 @@
+<Window x:Class="KasapOtomasyon.LicenseManager.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:KasapOtomasyon.LicenseManager.ViewModels"
+        mc:Ignorable="d"
+        Title="RoyPos Kasap - RSA Lisans Anahtarı Üretici (Vendor Tool)" 
+        Height="720" Width="980"
+        WindowStartupLocation="CenterScreen"
+        Background="#18181B" Foreground="#F4F4F5"
+        FontFamily="Segoe UI, Segoe UI Variable, Inter">
+    
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#27272A" CornerRadius="12" Padding="20,16" Margin="0,0,0,20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="ROYPOS KASAP LİSANS YÖNETİCİSİ" FontSize="20" FontWeight="Bold" Foreground="#EF4444"/>
+                    <TextBlock Text="RSA-2048 Asimetrik Lisans Dosyası Üretim ve Yetkilendirme Paneli" FontSize="13" Foreground="#A1A1AA" Margin="0,4,0,0"/>
+                </StackPanel>
+                <Border Grid.Column="1" Background="#3F3F46" CornerRadius="6" Padding="12,6" VerticalAlignment="Center">
+                    <TextBlock Text="VENDOR / GELİŞTİRİCİ SÜRÜMÜ" FontWeight="SemiBold" Foreground="#F4F4F5" FontSize="11"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Body -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.1*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Form Left Panel -->
+            <Border Grid.Column="0" Background="#27272A" CornerRadius="12" Padding="20">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="Müşteri &amp; Makine Bilgileri" FontSize="16" FontWeight="SemiBold" Foreground="#FAFAFA" Margin="0,0,0,16"/>
+
+                        <!-- Company Name -->
+                        <TextBlock Text="Firma / İşletme Adı" Foreground="#A1A1AA" FontSize="12" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding CompanyName, UpdateSourceTrigger=PropertyChanged}" 
+                                 Background="#18181B" Foreground="#FFFFFF" BorderBrush="#3F3F46" Padding="10,8" Margin="0,0,0,12" FontSize="13"/>
+
+                        <!-- Licensed To -->
+                        <TextBlock Text="Yetkili Kişi" Foreground="#A1A1AA" FontSize="12" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding LicensedTo, UpdateSourceTrigger=PropertyChanged}" 
+                                 Background="#18181B" Foreground="#FFFFFF" BorderBrush="#3F3F46" Padding="10,8" Margin="0,0,0,12" FontSize="13"/>
+
+                        <!-- Hardware Fingerprint -->
+                        <TextBlock Text="Müşteri Donanım Kimliği (Machine Fingerprint)" Foreground="#EF4444" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding MachineFingerprint, UpdateSourceTrigger=PropertyChanged}" 
+                                 Background="#18181B" Foreground="#34D399" BorderBrush="#EF4444" Padding="10,8" Margin="0,0,0,12" FontSize="13" FontFamily="Consolas"/>
+
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- License Type -->
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Lisans Türü" Foreground="#A1A1AA" FontSize="12" Margin="0,0,0,4"/>
+                                <ComboBox ItemsSource="{Binding LicenseTypes}" SelectedItem="{Binding SelectedLicenseType}"
+                                          Background="#18181B" Foreground="#000000" Padding="8,8" Height="36"/>
+                            </StackPanel>
+
+                            <!-- Max Terminals -->
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Maks. Aktif Terminal" Foreground="#A1A1AA" FontSize="12" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding MaxTerminals, UpdateSourceTrigger=PropertyChanged}" 
+                                         Background="#18181B" Foreground="#FFFFFF" BorderBrush="#3F3F46" Padding="10,8" FontSize="13" Height="36"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Expiration Date -->
+                        <TextBlock Text="Lisans Bitiş Tarihi" Foreground="#A1A1AA" FontSize="12" Margin="0,0,0,4"/>
+                        <DatePicker SelectedDate="{Binding ValidUntil}" Background="#18181B" Foreground="#000000" Margin="0,0,0,16" Height="36"/>
+
+                        <!-- Feature Flags -->
+                        <TextBlock Text="Paket Yetkileri / Feature Flags" FontSize="14" FontWeight="SemiBold" Foreground="#FAFAFA" Margin="0,0,0,8"/>
+                        
+                        <CheckBox Content="Dokunmatik POS &amp; Satış Modülü" IsChecked="{Binding FeaturePos}" Foreground="#D4D4D8" Margin="0,4"/>
+                        <CheckBox Content="Stok &amp; Depo &amp; SKT Takibi" IsChecked="{Binding FeatureStock}" Foreground="#D4D4D8" Margin="0,4"/>
+                        <CheckBox Content="Finans &amp; Cari Hesap &amp; Kasa" IsChecked="{Binding FeatureFinance}" Foreground="#D4D4D8" Margin="0,4"/>
+                        <CheckBox Content="Mezbaha Üretim &amp; Parçalama Ağacı BOM" IsChecked="{Binding FeatureMezbaha}" Foreground="#F87171" FontWeight="SemiBold" Margin="0,4"/>
+                        <CheckBox Content="GİB E-Fatura / E-Arşiv Entegrasyonu" IsChecked="{Binding FeatureEInvoice}" Foreground="#D4D4D8" Margin="0,4"/>
+                        <CheckBox Content="SMS Hatırlatma Servisi" IsChecked="{Binding FeatureSms}" Foreground="#D4D4D8" Margin="0,4"/>
+
+                        <!-- Generate Button -->
+                        <Button Command="{Binding GenerateLicenseCommand}" 
+                                Content="RSA İMZALI LİSANS ÜRET" 
+                                Background="#DC2626" Foreground="#FFFFFF" FontWeight="Bold" FontSize="14"
+                                Height="44" Margin="0,20,0,0" Cursor="Hand">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="8"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Output Right Panel -->
+            <Border Grid.Column="2" Background="#27272A" CornerRadius="12" Padding="20">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0">
+                        <TextBlock Text="Üretilen Lisans Dosyası (.lic)" FontSize="16" FontWeight="SemiBold" Foreground="#FAFAFA"/>
+                        <TextBlock Text="Bu JSON içeriği müşterinin uygulamasına yüklenecek .lic dosyasını oluşturur." Foreground="#71717A" FontSize="11" Margin="0,2,0,12"/>
+                    </StackPanel>
+
+                    <TextBox Grid.Row="1" Text="{Binding GeneratedLicenseJson}" 
+                             IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                             Background="#18181B" Foreground="#A7F3D0" BorderBrush="#3F3F46"
+                             Padding="12" FontFamily="Consolas" FontSize="11"/>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                        <Button Command="{Binding CopyToClipboardCommand}" 
+                                Content="Metni Kopyala" 
+                                Background="#3F3F46" Foreground="#FFFFFF" FontWeight="SemiBold"
+                                Padding="16,10" Margin="0,0,10,0" Cursor="Hand">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="8"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+
+                        <Button Command="{Binding SaveLicenseFileCommand}" 
+                                Content="💾 .LIC DOSYASI OLARAK KAYDET" 
+                                Background="#16A34A" Foreground="#FFFFFF" FontWeight="Bold"
+                                Padding="18,10" Cursor="Hand">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="8"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Status Bar Footer -->
+        <Border Grid.Row="2" Background="#27272A" CornerRadius="8" Padding="16,10" Margin="0,16,0,0">
+            <TextBlock Text="{Binding StatusMessage}" 
+                       Foreground="{Binding IsSuccess, Converter={x:Null}}" 
+                       FontSize="13" FontWeight="Medium"/>
+        </Border>
+    </Grid>
+</Window>

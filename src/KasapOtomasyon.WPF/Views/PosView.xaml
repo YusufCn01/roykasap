@@ -1,0 +1,296 @@
+<UserControl x:Class="KasapOtomasyon.WPF.Views.PosView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:conv="clr-namespace:KasapOtomasyon.WPF.Converters"
+             xmlns:loc="clr-namespace:KasapOtomasyon.WPF.Markup"
+             mc:Ignorable="d" 
+             d:DesignHeight="850" d:DesignWidth="1200"
+             Background="{StaticResource BrushBgMain}"
+             Foreground="{StaticResource BrushTextPrimary}">
+
+    <UserControl.Resources>
+        <conv:CurrencyFormatConverter x:Key="CurrencyConv"/>
+        <conv:WeightFormatConverter x:Key="WeightConv"/>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:NullToVisibilityConverter x:Key="NullToVis"/>
+    </UserControl.Resources>
+
+    <Grid Margin="18">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.5*"/>
+            <ColumnDefinition Width="16"/>
+            <ColumnDefinition Width="1.1*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- LEFT: Product Selection & Live Scale -->
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Top Bar: Barcode / Search & Live Terazi Reader -->
+            <Grid Grid.Row="0" Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Search / Barcode Input -->
+                <TextBox Grid.Column="0" Text="{Binding SearchBarcodeText, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource FluentTextBox}" Height="46" FontSize="15" Padding="14,0"
+                         Tag="{loc:Loc pos.searchPlaceholder}"
+                         KeyDown="BarcodeTextBox_KeyDown"/>
+
+                <!-- Live Scale Button (F8) -->
+                <Button Grid.Column="2" Command="{Binding ReadScaleWeightCommand}" 
+                        Background="#EFF6FF" BorderBrush="#3B82F6" BorderThickness="1.5"
+                        Padding="16,6" Cursor="Hand" Height="46">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="8"/>
+                        </Style>
+                    </Button.Resources>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="{loc:Loc pos.liveScale}" FontSize="12" FontWeight="Bold" Foreground="#1D4ED8" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding LiveScaleWeight, Converter={StaticResource WeightConv}}" 
+                                   FontSize="17" FontWeight="Bold" Foreground="#16A34A" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- Category Filter Tabs -->
+            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,0,0,12">
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="{loc:Loc pos.all}" Style="{StaticResource FluentSecondaryButton}" 
+                            Command="{Binding FilterByCategoryCommand}" CommandParameter="{x:Null}"
+                            Margin="0,0,6,0" Padding="16,8" FontWeight="Bold"/>
+
+                    <ItemsControl ItemsSource="{Binding Categories}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Content="{Binding Name}" Style="{StaticResource FluentSecondaryButton}"
+                                        Command="{Binding DataContext.FilterByCategoryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}"
+                                        Margin="0,0,6,0" Padding="16,8" FontWeight="SemiBold"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Product Buttons Grid (Clean White Tiles on Slate Background) -->
+            <Border Grid.Row="2" Style="{StaticResource FluentCard}" Padding="12">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding FilteredProducts}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource PosProductTileButton}" Margin="6" Width="150" Height="105"
+                                        Command="{Binding DataContext.AddProductToCartCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <StackPanel Grid.Row="0">
+                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushTextPrimary}" 
+                                                       TextWrapping="Wrap" MaxHeight="38" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Code}" FontSize="10" Foreground="{StaticResource BrushTextMuted}" Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        <Border Grid.Row="1" Background="{StaticResource BrushAccentMuted}" CornerRadius="6" Padding="6,3" Margin="0,4,0,0">
+                                            <Grid>
+                                                <TextBlock Text="{Binding UnitCode}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource BrushAccentDark}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding SalePrice, Converter={StaticResource CurrencyConv}}" 
+                                                           FontSize="13" FontWeight="Bold" Foreground="{StaticResource BrushAccent}" HorizontalAlignment="Right"/>
+                                            </Grid>
+                                        </Border>
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- RIGHT: Cart & Checkout Panel -->
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Customer Selector Bar -->
+            <Border Grid.Row="0" Style="{StaticResource FluentCard}" Padding="14,10" Margin="0,0,0,10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Müşteri / Cari:" Foreground="{StaticResource BrushTextSecondary}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="12"/>
+                    <ComboBox Grid.Column="1" ItemsSource="{Binding Customers}" SelectedItem="{Binding SelectedCustomer}"
+                              DisplayMemberPath="Name" Background="#FFFFFF" Foreground="#0F172A" Height="34"/>
+                    <Button Grid.Column="2" Command="{Binding ClearCartCommand}" Content="{loc:Loc pos.clear}" 
+                            Style="{StaticResource FluentSecondaryButton}" Foreground="{StaticResource BrushDanger}" 
+                            Padding="10,4" Margin="8,0,0,0" FontSize="11"/>
+                </Grid>
+            </Border>
+
+            <!-- Cart Table (Clean White Table) -->
+            <Border Grid.Row="1" Style="{StaticResource FluentCard}" Padding="0" Margin="0,0,0,10">
+                <DataGrid ItemsSource="{Binding CartItems}" SelectedItem="{Binding SelectedCartItem}" 
+                          Style="{StaticResource FluentDataGrid}" BorderThickness="0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="{loc:Loc pos.product}" Binding="{Binding ProductName}" Width="2*" FontWeight="SemiBold"/>
+                        
+                        <!-- Quantity Column with +/- Buttons -->
+                        <DataGridTemplateColumn Header="{loc:Loc pos.quantity}" Width="1.2*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button Content="-" Width="22" Height="22" FontSize="12" FontWeight="Bold" Style="{StaticResource FluentSecondaryButton}" Padding="0"
+                                                Command="{Binding DataContext.DecreaseQuantityCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"/>
+                                        <TextBlock Text="{Binding Quantity, StringFormat='{}{0:0.000}'}" FontWeight="Bold" Foreground="{StaticResource BrushAccent}" Margin="6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding UnitName}" FontSize="10" Foreground="{StaticResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <Button Content="+" Width="22" Height="22" FontSize="12" FontWeight="Bold" Style="{StaticResource FluentSecondaryButton}" Padding="0"
+                                                Command="{Binding DataContext.IncreaseQuantityCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTextColumn Header="{loc:Loc pos.unitPrice}" Binding="{Binding UnitPrice, Converter={StaticResource CurrencyConv}}" Width="1*"/>
+                        <DataGridTextColumn Header="{loc:Loc pos.total}" Binding="{Binding TotalPrice, Converter={StaticResource CurrencyConv}}" Width="1*" FontWeight="Bold"/>
+
+                        <!-- Delete Button -->
+                        <DataGridTemplateColumn Width="40">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="✕" Foreground="{StaticResource BrushDanger}" Background="Transparent" BorderThickness="0"
+                                            Cursor="Hand" FontWeight="Bold" FontSize="13"
+                                            Command="{Binding DataContext.RemoveCartItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <!-- Totals & Discounts Card -->
+            <Border Grid.Row="2" Style="{StaticResource FluentCard}" Padding="16,12" Margin="0,0,0,10">
+                <StackPanel>
+                    <Grid Margin="0,0,0,4">
+                        <TextBlock Text="{loc:Loc pos.subtotal}" Foreground="{StaticResource BrushTextSecondary}" FontSize="13"/>
+                        <TextBlock Text="{Binding SubTotal, Converter={StaticResource CurrencyConv}}" FontWeight="SemiBold" HorizontalAlignment="Right" FontSize="13"/>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,8">
+                        <TextBlock Text="{loc:Loc pos.discount}" Foreground="{StaticResource BrushWarning}" FontSize="13"/>
+                        <TextBlock Text="{Binding DiscountTotal, Converter={StaticResource CurrencyConv}}" Foreground="{StaticResource BrushWarning}" FontWeight="SemiBold" HorizontalAlignment="Right" FontSize="13"/>
+                    </Grid>
+
+                    <Separator Background="{StaticResource BrushBorder}" Margin="0,4,0,8"/>
+
+                    <Grid>
+                        <TextBlock Text="{loc:Loc pos.grandTotal}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding GrandTotal, Converter={StaticResource CurrencyConv}}" 
+                                   FontWeight="Bold" FontSize="26" Foreground="{StaticResource BrushAccent}" HorizontalAlignment="Right"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Big Action / Payment Buttons -->
+            <Grid Grid.Row="3">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Primary Cash & Card -->
+                <Grid Grid.Row="0" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1.2*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Command="{Binding CompleteCashSaleCommand}" 
+                            Style="{StaticResource FluentSuccessButton}" Height="54" FontSize="16">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{loc:Loc pos.cashSale}" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="2" Command="{Binding CompleteCardSaleCommand}" 
+                            Background="#2563EB" Foreground="#FFFFFF" Style="{StaticResource FluentPrimaryButton}" Height="54" FontSize="15">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{loc:Loc pos.cardSale}" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <!-- Secondary Actions: Veresiye, Parçalı, Park -->
+                <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,8">
+                    <Button Command="{Binding CompleteAccountSaleCommand}" Content="Açık Hesap (Cari)" 
+                            Style="{StaticResource FluentSecondaryButton}" Height="40" Margin="0,0,4,0" FontWeight="SemiBold"/>
+                    <Button Command="{Binding OpenSplitPaymentDialogCommand}" Content="{loc:Loc pos.splitPay}" 
+                            Style="{StaticResource FluentSecondaryButton}" Height="40" Margin="2,0" FontWeight="SemiBold"/>
+                    <Button Command="{Binding ParkCurrentSaleCommand}" Content="{loc:Loc pos.parkSale}" 
+                            Style="{StaticResource FluentSecondaryButton}" Height="40" Margin="4,0,0,0" FontWeight="SemiBold"/>
+                </UniformGrid>
+
+                <!-- Message Box -->
+                <TextBlock Grid.Row="2" Text="{Binding LastReceiptMessage}" Foreground="{StaticResource BrushSuccess}" 
+                           FontWeight="SemiBold" FontSize="12" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+            </Grid>
+        </Grid>
+
+        <!-- SPLIT PAYMENT MODAL POPUP -->
+        <Border Grid.ColumnSpan="3" Background="#60000000" 
+                Visibility="{Binding IsSplitPaymentDialogOpen, Converter={StaticResource BoolToVis}}"
+                VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+            <Border Style="{StaticResource FluentCard}" Width="450" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="28" Effect="{StaticResource EffectModalShadow}">
+                <StackPanel>
+                    <TextBlock Text="Parçalı Ödeme Dağılımı" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushAccent}" Margin="0,0,0,16"/>
+
+                    <TextBlock Text="Nakit Ödenen Tutar" Foreground="{StaticResource BrushTextSecondary}" FontSize="12" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding SplitCashAmount, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Margin="0,0,0,12" Height="38"/>
+
+                    <TextBlock Text="Kredi Kartı Ödenen Tutar" Foreground="{StaticResource BrushTextSecondary}" FontSize="12" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding SplitCardAmount, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Margin="0,0,0,12" Height="38"/>
+
+                    <TextBlock Text="Cari / Veresiye Tutar" Foreground="{StaticResource BrushTextSecondary}" FontSize="12" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding SplitAccountAmount, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Margin="0,0,0,20" Height="38"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Command="{Binding OpenSplitPaymentDialogCommand}" Content="İptal" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,10,0" Padding="16,8"/>
+                        <Button Command="{Binding ConfirmSplitPaymentCommand}" Content="ÖDEMEYİ TAMAMLA" Style="{StaticResource FluentSuccessButton}" Padding="18,8"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

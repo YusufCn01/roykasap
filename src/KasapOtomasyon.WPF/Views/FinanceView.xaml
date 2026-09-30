@@ -1,0 +1,141 @@
+<UserControl x:Class="KasapOtomasyon.WPF.Views.FinanceView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:conv="clr-namespace:KasapOtomasyon.WPF.Converters"
+             xmlns:loc="clr-namespace:KasapOtomasyon.WPF.Markup"
+             mc:Ignorable="d" 
+             d:DesignHeight="800" d:DesignWidth="1200"
+             Background="{StaticResource BrushBackground}"
+             Foreground="{StaticResource BrushTextPrimary}">
+
+    <UserControl.Resources>
+        <conv:CurrencyFormatConverter x:Key="CurrencyConv"/>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
+    <Grid Margin="16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.3*"/>
+            <ColumnDefinition Width="16"/>
+            <ColumnDefinition Width="1.1*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- LEFT: Customer Cari Accounts Table -->
+        <Border Grid.Column="0" Style="{StaticResource FluentCard}" Padding="16">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="0,0,0,12">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{loc:Loc finance.title}" FontSize="15" FontWeight="Bold"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource BrushSuccess}" 
+                               FontWeight="SemiBold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </Grid>
+
+                <DataGrid Grid.Row="1" ItemsSource="{Binding Customers}" SelectedItem="{Binding SelectedCustomer}"
+                          Style="{StaticResource FluentDataGrid}" BorderThickness="0"
+                          SelectionChanged="CustomerDataGrid_SelectionChanged">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="{loc:Loc products.code}" Binding="{Binding Code}" Width="80"/>
+                        <DataGridTextColumn Header="{loc:Loc finance.customer}" Binding="{Binding Name}" Width="2*" FontWeight="Bold"/>
+                        <DataGridTextColumn Header="{loc:Loc finance.phone}" Binding="{Binding PhoneNumber}" Width="1.2*"/>
+                        <DataGridTextColumn Header="{loc:Loc finance.balance}" Binding="{Binding CurrentBalance, Converter={StaticResource CurrencyConv}}" Width="1.2*" FontWeight="Bold"/>
+
+                        <!-- Overdue SMS Action Button -->
+                        <DataGridTemplateColumn Header="{loc:Loc finance.action}" Width="110">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="{loc:Loc finance.sendSms}" Style="{StaticResource FluentSecondaryButton}" 
+                                            Foreground="{StaticResource BrushInfo}" Padding="6,2" FontSize="11"
+                                            Command="{Binding DataContext.SendOverdueSmsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <!-- RIGHT: Customer Statement & Cash Register Management -->
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1.2*"/>
+                <RowDefinition Height="16"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Customer Extre / Statement -->
+            <Border Grid.Row="0" Style="{StaticResource FluentCard}" Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                        <TextBlock Text="{Binding SelectedCustomer.Name, StringFormat='Cari: {0}'}" FontSize="14" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding SelectedCustomer.CurrentBalance, Converter={StaticResource CurrencyConv}, StringFormat='Bakiye: {0}'}" 
+                                   Foreground="{StaticResource BrushAccentLight}" FontWeight="Bold" FontSize="12" Margin="0,2,0,0"/>
+                    </StackPanel>
+
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding CustomerStatement}" Style="{StaticResource FluentDataGrid}" BorderThickness="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="{loc:Loc common.date}" Binding="{Binding TransactionDate, StringFormat='{}{0:dd.MM.yyyy}'}" Width="90"/>
+                            <DataGridTextColumn Header="{loc:Loc finance.action}" Binding="{Binding TransactionType}" Width="80"/>
+                            <DataGridTextColumn Header="{loc:Loc finance.debit}" Binding="{Binding Debit, Converter={StaticResource CurrencyConv}}" Width="1*"/>
+                            <DataGridTextColumn Header="{loc:Loc finance.credit}" Binding="{Binding Credit, Converter={StaticResource CurrencyConv}}" Width="1*"/>
+                            <DataGridTextColumn Header="{loc:Loc finance.balance}" Binding="{Binding BalanceAfter, Converter={StaticResource CurrencyConv}}" Width="1*" FontWeight="Bold"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <!-- Kasa Gün Sonu / Açılış & Kapanış -->
+            <Border Grid.Row="2" Style="{StaticResource FluentCard}" Padding="18">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="{loc:Loc finance.cashManagementTitle}" FontSize="14" FontWeight="Bold" Margin="0,0,0,12"/>
+
+                        <!-- If active session is open -->
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="{loc:Loc finance.openingBalance}" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="{Binding ActiveCashSession.OpeningBalance, Converter={StaticResource CurrencyConv}}" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="{loc:Loc finance.cashSales}" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="{Binding ActiveCashSession.TotalSalesCash, Converter={StaticResource CurrencyConv}}" FontWeight="Bold" Foreground="#34D399" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="{loc:Loc finance.cardSales}" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="{Binding ActiveCashSession.TotalSalesCreditCard, Converter={StaticResource CurrencyConv}}" FontWeight="Bold" Foreground="#60A5FA" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,8">
+                            <TextBlock Text="{loc:Loc finance.calculatedBalance}" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}"/>
+                            <TextBlock Text="{Binding ActiveCashSession.CalculatedBalance, Converter={StaticResource CurrencyConv}}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource BrushAccentLight}" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Separator Background="{StaticResource BrushBorder}" Margin="0,4,0,10"/>
+
+                        <!-- Close Cash Form -->
+                        <TextBlock Text="{loc:Loc finance.actualCount}" Foreground="{StaticResource BrushTextSecondary}" FontSize="12" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding ClosingActualCount, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="34" Margin="0,0,0,10"/>
+
+                        <Button Command="{Binding CloseCashSessionCommand}" 
+                                Content="{loc:Loc finance.closeSessionBtn}" 
+                                Style="{StaticResource FluentPrimaryButton}" Height="40" FontSize="13"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

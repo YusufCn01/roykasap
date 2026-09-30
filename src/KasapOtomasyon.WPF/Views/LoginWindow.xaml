@@ -1,0 +1,341 @@
+<Window x:Class="KasapOtomasyon.WPF.Views.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:conv="clr-namespace:KasapOtomasyon.WPF.Converters"
+        xmlns:loc="clr-namespace:KasapOtomasyon.WPF.Markup"
+        mc:Ignorable="d"
+        Title="Roy Kasap - Entegre Et, Mezbaha &amp; Satış Otomasyon Sistemi" 
+        Icon="pack://application:,,,/Assets/roy_kasap_icon_512.png"
+        WindowState="Maximized"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Background="#0B0F19"
+        Foreground="#F8FAFC"
+        FontFamily="Segoe UI Variable, Segoe UI, Inter, sans-serif"
+        KeyDown="Window_KeyDown">
+
+    <Window.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:NullToVisibilityConverter x:Key="NullToVis"/>
+
+        <!-- Soft Glow Drop Shadow -->
+        <DropShadowEffect x:Key="EffectGlow" Color="#E11D48" BlurRadius="30" Opacity="0.35" ShadowDepth="0"/>
+        <DropShadowEffect x:Key="EffectCard" Color="#000000" BlurRadius="25" Opacity="0.12" ShadowDepth="8"/>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="46"/> <!-- Top System Bar -->
+            <RowDefinition Height="*"/>  <!-- Main Dual-Pane Content -->
+            <RowDefinition Height="40"/> <!-- Bottom Info Bar -->
+        </Grid.RowDefinitions>
+
+        <!-- TOP BAR (Custom Window Controls) -->
+        <Border Grid.Row="0" Background="#090D16" BorderBrush="#1E293B" BorderThickness="0,0,0,1" Padding="20,0">
+            <Grid VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Brand Mini Badge -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Source="pack://application:,,,/Assets/roy_kasap_logo.png" Height="26" Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <Border Background="#1E293B" CornerRadius="4" Padding="6,2" Margin="10,0,0,0">
+                        <TextBlock Text="v2026.4 ENTERPRISE GLOBAL" FontSize="10" FontWeight="Bold" Foreground="#94A3B8"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- System Controls (Language Selector, Minimize, Close) -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="#1E293B" CornerRadius="6" Padding="3" Margin="0,0,12,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Command="{Binding SwitchLanguageCommand}" CommandParameter="tr-TR"
+                                    Content="🇹🇷 TR" Style="{StaticResource FluentSecondaryButton}" Padding="8,4" FontSize="11" Margin="0,0,2,0"/>
+                            <Button Command="{Binding SwitchLanguageCommand}" CommandParameter="en-GB"
+                                    Content="🇬🇧 EN" Style="{StaticResource FluentSecondaryButton}" Padding="8,4" FontSize="11" Margin="0,0,2,0"/>
+                            <Button Command="{Binding SwitchLanguageCommand}" CommandParameter="pl-PL"
+                                    Content="🇵🇱 PL" Style="{StaticResource FluentSecondaryButton}" Padding="8,4" FontSize="11"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Button Click="Minimize_Click" Content="—" Background="Transparent" Foreground="#94A3B8" BorderThickness="0" Width="38" Height="32" FontSize="13" Cursor="Hand"/>
+                    <Button Click="Close_Click" Content="✕" Background="Transparent" Foreground="#EF4444" BorderThickness="0" Width="38" Height="32" FontSize="13" FontWeight="Bold" Cursor="Hand"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- MAIN DUAL-PANE BODY -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.1*"/> <!-- Left: Dark Luxury Hero Banner -->
+                <ColumnDefinition Width="1.2*"/> <!-- Right: Clean White Auth Center -->
+            </Grid.ColumnDefinitions>
+
+            <!-- ========================================================================= -->
+            <!-- LEFT PANE: LUXURY ENTERPRISE HERO & PLATFORM CAPABILITIES                 -->
+            <!-- ========================================================================= -->
+            <Border Grid.Column="0" Background="#090D16" BorderBrush="#1E293B" BorderThickness="0,0,1,0" Padding="48,40">
+                <Grid>
+                    <!-- Background Ambient Light Blob -->
+                    <Ellipse Width="450" Height="450" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-100,-100,0,0" IsHitTestVisible="False" Opacity="0.15">
+                        <Ellipse.Fill>
+                            <RadialGradientBrush>
+                                <GradientStop Color="#E11D48" Offset="0"/>
+                                <GradientStop Color="Transparent" Offset="0.8"/>
+                            </RadialGradientBrush>
+                        </Ellipse.Fill>
+                    </Ellipse>
+
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <!-- Main Logo & Title -->
+                        <Border Background="#FFFFFF" CornerRadius="16" Padding="14,10" HorizontalAlignment="Left" Margin="0,0,0,22" Effect="{StaticResource EffectGlow}">
+                            <Image Source="pack://application:,,,/Assets/roy_kasap_logo.png" Height="48" RenderOptions.BitmapScalingMode="HighQuality"/>
+                        </Border>
+
+                        <TextBlock Text="{loc:Loc login.title}" FontSize="30" FontWeight="Black" Foreground="#FFFFFF" Margin="0,0,0,6"/>
+                        <TextBlock Text="{loc:Loc login.subtitle}" FontSize="14" FontWeight="SemiBold" Foreground="#FDA4AF" Margin="0,0,0,14"/>
+                        <TextBlock Text="{loc:Loc login.description}" 
+                                   FontSize="12" Foreground="#94A3B8" TextWrapping="Wrap" LineHeight="18" Margin="0,0,0,28"/>
+
+                        <!-- Enterprise Feature Matrix List -->
+                        <StackPanel Margin="0,0,0,32">
+                            <Border Background="#131C2E" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🐄 " FontSize="15"/>
+                                    <TextBlock Text="65+ Dünya Irkı &amp; Resmi Bakanlık Dijital Pasaportu (PDF)" FontSize="12" FontWeight="SemiBold" Foreground="#E2E8F0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="#131C2E" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🔪 " FontSize="15"/>
+                                    <TextBlock Text="Kesimhane MES &amp; AB SEUROP Karkas Sınıflandırması" FontSize="12" FontWeight="SemiBold" Foreground="#E2E8F0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="#131C2E" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🥩 " FontSize="15"/>
+                                    <TextBlock Text="Karkas Parçalama &amp; Kütle Dengesi Korunumu (Δ ≤ %0.5)" FontSize="12" FontWeight="SemiBold" Foreground="#E2E8F0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="#131C2E" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🥓 " FontSize="15"/>
+                                    <TextBlock Text="Şarküteri BOM Reçeteleri &amp; Kuruma Firesi Parti Üretimi" FontSize="12" FontWeight="SemiBold" Foreground="#E2E8F0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="#131C2E" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📦 " FontSize="15"/>
+                                    <TextBlock Text="WMS SSCC-18 Palet Lojistiği &amp; 1-Tık Gıda Geri Çağırma" FontSize="12" FontWeight="SemiBold" Foreground="#E2E8F0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="#131C2E" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="8" Padding="12,10">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🔒 " FontSize="15"/>
+                                    <TextBlock Text="SHA-256 Değişmez Kriptografik Denetim İzi &amp; 18 Kurumsal Rol" FontSize="12" FontWeight="SemiBold" Foreground="#E2E8F0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Live Status Indicator -->
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse Width="8" Height="8" Fill="#10B981" Margin="0,0,8,0"/>
+                            <TextBlock Text="{loc:Loc login.systemStatus}" FontSize="11" Foreground="#64748B"/>
+                            <TextBlock Text="{loc:Loc login.onlineStatus}" FontSize="11" FontWeight="Bold" Foreground="#10B981"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ========================================================================= -->
+            <!-- RIGHT PANE: MODERN AUTHENTICATION & QUICK ROLE ACCESS                     -->
+            <!-- ========================================================================= -->
+            <Border Grid.Column="1" Background="#F8FAFC" Padding="50,40">
+                <Grid VerticalAlignment="Center" MaxWidth="520" HorizontalAlignment="Center">
+                    <StackPanel>
+                        <!-- Form Header -->
+                        <TextBlock Text="{loc:Loc login.portalTitle}" FontSize="26" FontWeight="Black" Foreground="#0F172A" Margin="0,0,0,4"/>
+                        <TextBlock Text="{loc:Loc login.portalSubtitle}" FontSize="13" Foreground="#64748B" Margin="0,0,0,20"/>
+
+                        <!-- ONE-CLICK ROLE QUICK SELECTOR (For instantaneous switching) -->
+                        <TextBlock Text="{loc:Loc login.quickRoles}" FontSize="10" FontWeight="Bold" Foreground="#64748B" Margin="0,0,0,8"/>
+                        <UniformGrid Columns="4" Margin="0,0,0,20">
+                            <Button Command="{Binding SelectDemoRoleCommand}" CommandParameter="admin"
+                                    Content="{loc:Loc login.roleAdmin}" Style="{StaticResource FluentSecondaryButton}" Height="34" Margin="2" FontWeight="Bold" FontSize="11"/>
+                            <Button Command="{Binding SelectDemoRoleCommand}" CommandParameter="kasap"
+                                    Content="{loc:Loc login.roleButcher}" Style="{StaticResource FluentSecondaryButton}" Height="34" Margin="2" FontWeight="Bold" FontSize="11"/>
+                            <Button Command="{Binding SelectDemoRoleCommand}" CommandParameter="vet"
+                                    Content="{loc:Loc login.roleVet}" Style="{StaticResource FluentSecondaryButton}" Height="34" Margin="2" FontWeight="Bold" FontSize="11"/>
+                            <Button Command="{Binding SelectDemoRoleCommand}" CommandParameter="kasiyer"
+                                    Content="{loc:Loc login.roleCashier}" Style="{StaticResource FluentSecondaryButton}" Height="34" Margin="2" FontWeight="Bold" FontSize="11"/>
+                        </UniformGrid>
+
+                        <!-- Segmented Switcher: Standard Login vs PIN -->
+                        <Border Background="#E2E8F0" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="10" Padding="4" Margin="0,0,0,22">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Button Grid.Column="0" 
+                                        Click="StandardLoginTab_Click" x:Name="BtnStandardTab"
+                                        Content="{loc:Loc login.tabStandard}" FontWeight="Bold" FontSize="13" Height="38" Cursor="Hand">
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Background" Value="#BE123C"/>
+                                            <Setter Property="Foreground" Value="#FFFFFF"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="8">
+                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+
+                                <Button Grid.Column="1" 
+                                        Click="PinLoginTab_Click" x:Name="BtnPinTab"
+                                        Content="{loc:Loc login.tabPin}" FontWeight="Bold" FontSize="13" Height="38" Cursor="Hand">
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                            <Setter Property="Foreground" Value="#64748B"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="8">
+                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </Grid>
+                        </Border>
+
+                        <!-- TAB 1: USERNAME & PASSWORD FORM -->
+                        <StackPanel x:Name="StandardLoginPanel" Visibility="Visible">
+                            <!-- Username -->
+                            <TextBlock Text="{loc:Loc login.username}" Foreground="#334155" FontSize="11" FontWeight="Bold" Margin="0,0,0,6"/>
+                            <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" 
+                                     Style="{StaticResource FluentTextBox}" Height="46" FontSize="14" Margin="0,0,0,16"/>
+
+                            <!-- Password -->
+                            <Grid Margin="0,0,0,6">
+                                <TextBlock Text="{loc:Loc login.password}" Foreground="#334155" FontSize="11" FontWeight="Bold"/>
+                                <Button HorizontalAlignment="Right" Click="TogglePasswordEye_Click" 
+                                        Content="{loc:Loc login.showPassword}" Background="Transparent" Foreground="#BE123C" BorderThickness="0" FontSize="11" FontWeight="Bold" Cursor="Hand"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,14">
+                                <PasswordBox x:Name="PasswordInput" PasswordChanged="PasswordInput_PasswordChanged"
+                                             Style="{StaticResource FluentPasswordBox}" Height="46" FontSize="15"/>
+                                <TextBox x:Name="PasswordRevealInput" Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" 
+                                         Style="{StaticResource FluentTextBox}" Height="46" FontSize="14" Visibility="Collapsed"/>
+                            </Grid>
+
+                            <!-- Remember Me & Default Hint -->
+                            <Grid Margin="0,0,0,20">
+                                <CheckBox Content="{loc:Loc login.rememberMe}" IsChecked="{Binding RememberMe}" Foreground="#475569" FontWeight="Medium" VerticalAlignment="Center"/>
+                                <TextBlock Text="Örn: admin / admin123" Foreground="#94A3B8" FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <!-- Submit Button -->
+                            <Button Command="{Binding LoginCommand}" 
+                                    Content="{loc:Loc login.loginBtn}" 
+                                    Style="{StaticResource FluentPrimaryButton}" 
+                                    Height="50" FontSize="15" FontWeight="Bold" Background="#BE123C"/>
+                        </StackPanel>
+
+                        <!-- TAB 2: PIN NUMPAD FORM -->
+                        <StackPanel x:Name="PinLoginPanel" Visibility="Collapsed">
+                            <TextBlock Text="{loc:Loc login.pinPrompt}" Foreground="#334155" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+
+                            <!-- PIN Masked Display -->
+                            <Border Background="#FFFFFF" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="10" Height="48" Margin="0,0,0,14" Effect="{StaticResource EffectCard}">
+                                <TextBlock Text="{Binding PinCode}" FontSize="24" FontWeight="Bold" Foreground="#BE123C" 
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+
+                            <!-- Big Touch Numpad (min 50px buttons) -->
+                            <UniformGrid Columns="3" Rows="4" Margin="0,0,0,12">
+                                <Button Content="1" Style="{StaticResource FluentSecondaryButton}" Margin="3" Height="50" FontSize="20" FontWeight="Bold" Command="{Binding AppendPinCommand}" CommandParameter="1"/>
+                                <Button Content="2" Style="{StaticResource FluentSecondaryButton}" Margin="3" Height="50" FontSize="20" FontWeight="Bold" Command="{Binding AppendPinCommand}" CommandParameter="2"/>
+                                <Button Content="3" Style="{StaticResource FluentSecondaryButton}" Margin="3" Height="50" FontSize="20" FontWeight="Bold" Command="{Binding AppendPinCommand}" CommandParameter="3"/>
+
+                                <Button Content="4" Style="{StaticResource FluentSecondaryButton}" Margin="3" Height="50" FontSize="20" FontWeight="Bold" Command="{Binding AppendPinCommand}" CommandParameter="4"/>
+                                <Button Content="5" Style="{StaticResource FluentSecondaryButton}" Margin="3" Height="50" FontSize="20" FontWeight="Bold" Command="{Binding AppendPinCommand}" CommandParameter="5"/>
+                                <Button Content="6" Style="{StaticResource FluentSecondaryButton}" Margin="3" Height="50" FontSize="20" FontWeight="Bold" Command="{Binding AppendPinCommand}" CommandParameter="6"/>
+
+                                <Button Content="7" Style="{StaticResource FluentSecondaryButton}" Margin="3" Height="50" FontSize="20" FontWeight="Bold" Command="{Binding AppendPinCommand}" CommandParameter="7"/>
+                                <Button Content="8" Style="{StaticResource FluentSecondaryButton}" Margin="3" Height="50" FontSize="20" FontWeight="Bold" Command="{Binding AppendPinCommand}" CommandParameter="8"/>
+                                <Button Content="9" Style="{StaticResource FluentSecondaryButton}" Margin="3" Height="50" FontSize="20" FontWeight="Bold" Command="{Binding AppendPinCommand}" CommandParameter="9"/>
+
+                                <Button Content="C" Style="{StaticResource FluentSecondaryButton}" Foreground="#EF4444" Margin="3" Height="50" FontSize="18" FontWeight="Bold" Command="{Binding ClearPinCommand}"/>
+                                <Button Content="0" Style="{StaticResource FluentSecondaryButton}" Margin="3" Height="50" FontSize="20" FontWeight="Bold" Command="{Binding AppendPinCommand}" CommandParameter="0"/>
+                                <Button Content="➔" Style="{StaticResource FluentPrimaryButton}" Margin="3" Height="50" FontSize="20" FontWeight="Bold" Command="{Binding PinLoginCommand}" Background="#BE123C"/>
+                            </UniformGrid>
+                        </StackPanel>
+
+                        <!-- ERROR BANNER -->
+                        <Border Background="#FEF2F2" BorderBrush="#EF4444" BorderThickness="1.5" 
+                                CornerRadius="8" Padding="14,10" Margin="0,16,0,0"
+                                Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVis}}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="⚠ " FontSize="16" Foreground="#EF4444" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="{Binding ErrorMessage}" Foreground="#B91C1C" FontWeight="Bold" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- FOOTER BAR -->
+        <Border Grid.Row="2" Background="#090D16" BorderBrush="#1E293B" BorderThickness="0,1,0,0" Padding="24,0">
+            <Grid VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="© 2026 RoyPos Enterprise Meat ERP &amp; Slaughterhouse Management Subsystems. All Rights Reserved." 
+                           Foreground="#64748B" FontSize="11" VerticalAlignment="Center"/>
+
+                <!-- License & Plant Pill -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="#1E293B" CornerRadius="6" Padding="10,3" Margin="0,0,10,0">
+                        <TextBlock Text="🏢 Tesis: TR-34 İstanbul Entegre Mezbaha" FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8"/>
+                    </Border>
+                    <Border Background="#881337" BorderBrush="#E11D48" BorderThickness="1" CornerRadius="6" Padding="10,3">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔑 " FontSize="10" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding LicenseInfo.LicenseType}" FontWeight="Bold" FontSize="11" Foreground="#FDA4AF" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding LicenseInfo.RemainingDays, StringFormat=' ({0} Gün Kaldı)'}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

@@ -1,0 +1,1708 @@
+<UserControl x:Class="KasapOtomasyon.WPF.Views.ShelfLifeReprocessingView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:conv="clr-namespace:KasapOtomasyon.WPF.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="950" d:DesignWidth="1400"
+             Background="{StaticResource BrushBackground}"
+             Foreground="{StaticResource BrushTextPrimary}">
+
+    <UserControl.Resources>
+        <conv:CurrencyFormatConverter x:Key="CurrencyConv"/>
+        <conv:WeightFormatConverter x:Key="WeightConv"/>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:IntegerEqualsToVisibilityConverter x:Key="IntToVis"/>
+    </UserControl.Resources>
+
+    <Grid Margin="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- 0: Top Header -->
+            <RowDefinition Height="Auto"/> <!-- 1: HACCP & Food Safety Explanation Banner -->
+            <RowDefinition Height="Auto"/> <!-- 2: Tab Switcher Bar -->
+            <RowDefinition Height="*"/>    <!-- 3: Main Tab Content -->
+        </Grid.RowDefinitions>
+
+        <!-- 0. TOP HEADER & MULTILINGUAL SWITCHER -->
+        <Border Grid.Row="0" Style="{StaticResource FluentCard}" Padding="18,14" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Icon & Titles -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="#9E1B32" CornerRadius="10" Width="44" Height="44" Margin="0,0,14,0">
+                        <TextBlock Text="🥩" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding LTitle}" FontSize="18" FontWeight="Black" Foreground="{StaticResource BrushAccent}"/>
+                            <Border Background="#FEF3C7" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="BOM &amp; SALVAGE" FontSize="9.5" FontWeight="Bold" Foreground="#B45309"/>
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="{Binding LSubtitle}" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Middle Status Message -->
+                <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" Foreground="{StaticResource BrushSuccess}" 
+                           FontWeight="SemiBold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+
+                <!-- Right: Trilingual Switcher (TR, EN, PL) & Refresh -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Language Buttons -->
+                    <Border Background="#F1F5F9" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="8" Padding="4" Margin="0,0,12,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Command="{Binding SwitchLanguageCommand}" CommandParameter="tr-TR" Content="🇹🇷 Türkçe"
+                                    Style="{StaticResource FluentSecondaryButton}" Padding="8,4" FontSize="11" FontWeight="Bold" Margin="0,0,4,0"/>
+                            <Button Command="{Binding SwitchLanguageCommand}" CommandParameter="en-GB" Content="🇬🇧 English"
+                                    Style="{StaticResource FluentSecondaryButton}" Padding="8,4" FontSize="11" FontWeight="Bold" Margin="0,0,4,0"/>
+                            <Button Command="{Binding SwitchLanguageCommand}" CommandParameter="pl-PL" Content="🇵🇱 Polski"
+                                    Style="{StaticResource FluentSecondaryButton}" Padding="8,4" FontSize="11" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Button Command="{Binding LoadDataCommand}" Content="🔄 Yenile" 
+                            Style="{StaticResource FluentSecondaryButton}" Height="36" Padding="14,0" FontWeight="SemiBold"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 1. HACCP & FOOD SAFETY EXPLANATION BANNER -->
+        <Border Grid.Row="1" Background="#F0FDF4" BorderBrush="#BBF7D0" BorderThickness="1.5" CornerRadius="10" Padding="14,10" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="🛡️" FontSize="22" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding LHaccpTitle}" FontWeight="Bold" FontSize="12.5" Foreground="#166534"/>
+                    <TextBlock Text="{Binding LHaccpText}" FontSize="11" Foreground="#15803D" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 2. MODERN TAB SWITCHER (9 TABS) -->
+        <Border Grid.Row="2" Background="#F8FAFC" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="10" Padding="4" Margin="0,0,0,12">
+            <UniformGrid Rows="1" Columns="9">
+                <!-- Tab 0: Overview -->
+                <Button Command="{Binding SetTabCommand}" CommandParameter="0"
+                        Content="{Binding LTabOverview}" Height="38" Margin="2"
+                        FontWeight="Bold" FontSize="11">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource FluentSecondaryButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedTabIndex}" Value="0">
+                                    <Setter Property="Background" Value="#9E1B32"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="BorderBrush" Value="#781324"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <!-- Tab 1: QC -->
+                <Button Command="{Binding SetTabCommand}" CommandParameter="1"
+                        Content="{Binding LTabQc}" Height="38" Margin="2"
+                        FontWeight="Bold" FontSize="11">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource FluentSecondaryButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedTabIndex}" Value="1">
+                                    <Setter Property="Background" Value="#16A34A"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="BorderBrush" Value="#15803D"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <!-- Tab 2: Aux -->
+                <Button Command="{Binding SetTabCommand}" CommandParameter="2"
+                        Content="{Binding LTabAux}" Height="38" Margin="2"
+                        FontWeight="Bold" FontSize="11">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource FluentSecondaryButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedTabIndex}" Value="2">
+                                    <Setter Property="Background" Value="#D97706"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="BorderBrush" Value="#B45309"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <!-- Tab 3: Equipment -->
+                <Button Command="{Binding SetTabCommand}" CommandParameter="3"
+                        Content="{Binding LTabEquipment}" Height="38" Margin="2"
+                        FontWeight="Bold" FontSize="11">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource FluentSecondaryButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedTabIndex}" Value="3">
+                                    <Setter Property="Background" Value="#0284C7"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="BorderBrush" Value="#0369A1"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <!-- Tab 4: ROI -->
+                <Button Command="{Binding SetTabCommand}" CommandParameter="4"
+                        Content="{Binding LTabRoi}" Height="38" Margin="2"
+                        FontWeight="Bold" FontSize="11">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource FluentSecondaryButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedTabIndex}" Value="4">
+                                    <Setter Property="Background" Value="#7C3AED"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="BorderBrush" Value="#6D28D9"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <!-- Tab 5: IoT Curing -->
+                <Button Command="{Binding SetTabCommand}" CommandParameter="5"
+                        Content="{Binding LTabCuring}" Height="38" Margin="2"
+                        FontWeight="Bold" FontSize="11">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource FluentSecondaryButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedTabIndex}" Value="5">
+                                    <Setter Property="Background" Value="#EA580C"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="BorderBrush" Value="#C2410C"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <!-- Tab 6: Sensory -->
+                <Button Command="{Binding SetTabCommand}" CommandParameter="6"
+                        Content="{Binding LTabSensory}" Height="38" Margin="2"
+                        FontWeight="Bold" FontSize="11">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource FluentSecondaryButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedTabIndex}" Value="6">
+                                    <Setter Property="Background" Value="#059669"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="BorderBrush" Value="#047857"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <!-- Tab 7: Disposal -->
+                <Button Command="{Binding SetTabCommand}" CommandParameter="7"
+                        Content="{Binding LTabDisposal}" Height="38" Margin="2"
+                        FontWeight="Bold" FontSize="11">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource FluentSecondaryButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedTabIndex}" Value="7">
+                                    <Setter Property="Background" Value="#DC2626"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="BorderBrush" Value="#B91C1C"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <!-- Tab 8: Incentives -->
+                <Button Command="{Binding SetTabCommand}" CommandParameter="8"
+                        Content="{Binding LTabIncentives}" Height="38" Margin="2"
+                        FontWeight="Bold" FontSize="11">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource FluentSecondaryButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedTabIndex}" Value="8">
+                                    <Setter Property="Background" Value="#CA8A04"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="BorderBrush" Value="#A16207"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </UniformGrid>
+        </Border>
+
+        <!-- 3. MAIN TAB CONTENT AREA -->
+        <Grid Grid.Row="3">
+
+            <!-- ============================================================= -->
+            <!-- TAB 0: MAIN 3-COLUMN WORKBENCH & REAL-TIME SIMULATION         -->
+            <!-- ============================================================= -->
+            <Grid Visibility="{Binding SelectedTabIndex, Converter={StaticResource IntToVis}, ConverterParameter=0}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3.2*"/> <!-- Col 0: Reyon SKT Batches -->
+                    <ColumnDefinition Width="14"/>
+                    <ColumnDefinition Width="3.2*"/> <!-- Col 1: Recipes & Ingredients -->
+                    <ColumnDefinition Width="14"/>
+                    <ColumnDefinition Width="3.6*"/> <!-- Col 2: Live Simulation & Execution -->
+                </Grid.ColumnDefinitions>
+
+            <!-- ============================================================= -->
+            <!-- COLUMN 0: REYON SKT KRİTİK PARTİLER & TARİH GİRİŞİ           -->
+            <!-- ============================================================= -->
+            <Border Grid.Column="0" Style="{StaticResource FluentCard}" Padding="14">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Section Header with Fast Barcode Scanner -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                        <Grid>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🚨" FontSize="16" Margin="0,0,6,0"/>
+                                <TextBlock Text="{Binding LBatchesTitle}" FontSize="13.5" FontWeight="Bold" Foreground="#9E1B32"/>
+                            </StackPanel>
+                            <Border HorizontalAlignment="Right" Background="#FEE2E2" CornerRadius="6" Padding="6,2">
+                                <TextBlock Text="{Binding ExpiringBatches.Count, StringFormat='{}{0} Parti'}" FontSize="11" FontWeight="Bold" Foreground="#B91C1C"/>
+                            </Border>
+                        </Grid>
+                        <TextBlock Text="{Binding LBatchesDesc}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"/>
+
+                        <!-- Fast Scanner Bar -->
+                        <Border Background="#EFF6FF" BorderBrush="#93C5FD" BorderThickness="1" CornerRadius="8" Padding="6" Margin="0,8,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" Text="{Binding FastScanInput, UpdateSourceTrigger=PropertyChanged}" 
+                                         Height="28" FontSize="11" Margin="0,0,6,0"
+                                         Style="{StaticResource FluentTextBox}"/>
+                                <Button Grid.Column="1" Command="{Binding ExecuteFastScanCommand}" Content="📱 Hızlı Tara"
+                                        Style="{StaticResource FluentSecondaryButton}" Height="28" Padding="8,0" FontSize="10.5" FontWeight="Bold"/>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Batches DataGrid -->
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding ExpiringBatches}" SelectedItem="{Binding SelectedBatch}"
+                              Style="{StaticResource FluentDataGrid}" BorderThickness="0" SelectionMode="Single"
+                              AutoGenerateColumns="False" CanUserAddRows="False" SelectionChanged="BatchesDataGrid_SelectionChanged">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="Ürün / Parti" Width="1.8*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="4,2">
+                                            <TextBlock Text="{Binding ProductName}" FontWeight="Bold" FontSize="12.5"/>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding LotNumber}" FontSize="10" Foreground="{StaticResource BrushTextMuted}"/>
+                                                <TextBlock Text=" • " FontSize="10" Foreground="{StaticResource BrushTextMuted}"/>
+                                                <TextBlock Text="{Binding ShelfLocation}" FontSize="10" Foreground="#0284C7"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTextColumn Header="Miktar" Binding="{Binding CurrentQuantityKg, Converter={StaticResource WeightConv}}" Width="1*" FontWeight="Bold"/>
+
+                            <DataGridTemplateColumn Header="Reyon SKT" Width="1.3*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="4,2">
+                                            <TextBlock Text="{Binding ShelfDisplayExpiryDate, StringFormat='{}{0:dd.MM.yyyy}'}" FontWeight="SemiBold" FontSize="11.5"/>
+                                            <TextBlock Text="{Binding UrgencyBadge}" FontSize="10" FontWeight="Bold" Foreground="#DC2626"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Selected Batch Actions Footer -->
+                    <Border Grid.Row="2" Background="#F8FAFC" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,10,0,0">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,6">
+                                <TextBlock Text="Seçilen Parti:" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}"/>
+                                <TextBlock HorizontalAlignment="Right" Text="{Binding SelectedBatch.ProductName}" FontSize="11.5" FontWeight="Bold" Foreground="{StaticResource BrushAccent}"/>
+                            </Grid>
+                            
+                            <!-- Action Row 1: Shelf Date & Reprocess -->
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <Button Grid.Column="0" Command="{Binding OpenShelfDateModalCommand}" CommandParameter="{Binding SelectedBatch}"
+                                        Content="📅 SKT Değiştir" Style="{StaticResource FluentSecondaryButton}" Height="32" Margin="0,0,3,0" FontSize="10.5" FontWeight="Bold"/>
+                                
+                                <Button Grid.Column="1" Command="{Binding SelectBatchCommand}" CommandParameter="{Binding SelectedBatch}"
+                                        Content="🔄 Dönüşüme Al" Style="{StaticResource FluentPrimaryButton}" Height="32" Margin="3,0,0,0" FontSize="10.5" FontWeight="Bold" Background="#9E1B32"/>
+                            </Grid>
+
+                            <!-- Action Row 2: Smart Markdown & Thermal Label -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <Button Grid.Column="0" Command="{Binding ApplySmartMarkdownCommand}"
+                                        Content="🏷️ Akıllı İndirim" Style="{StaticResource FluentSecondaryButton}" Height="30" Margin="0,0,3,0" FontSize="10" FontWeight="Bold" Foreground="#D97706"/>
+                                
+                                <Button Grid.Column="1" Command="{Binding GenerateThermalLabelCommand}"
+                                        Content="🏷️ Termal Etiket" Style="{StaticResource FluentSecondaryButton}" Height="30" Margin="3,0,0,0" FontSize="10" FontWeight="Bold" Foreground="#0284C7"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- ============================================================= -->
+            <!-- COLUMN 1: DÖNÜŞÜM REÇETELERİ (BOM) & KULLANICI REÇETESİ     -->
+            <!-- ============================================================= -->
+            <Border Grid.Column="2" Style="{StaticResource FluentCard}" Padding="14">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="1.2*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="1.4*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Section Header with Add New Button -->
+                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📋" FontSize="16" Margin="0,0,6,0"/>
+                                <TextBlock Text="{Binding LRecipesTitle}" FontSize="13.5" FontWeight="Bold" Foreground="#B45309"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding LRecipesDesc}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"/>
+                        </StackPanel>
+
+                        <Button HorizontalAlignment="Right" Command="{Binding OpenNewRecipeModalCommand}"
+                                Content="➕ Yeni Reçete" Style="{StaticResource FluentPrimaryButton}" Height="30" Padding="10,0" FontSize="11" FontWeight="Bold" Background="#B45309"/>
+                    </Grid>
+
+                    <!-- Recipes List -->
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Recipes}" SelectedItem="{Binding SelectedRecipe}"
+                             BorderThickness="0" Background="Transparent" SelectionChanged="RecipesListBox_SelectionChanged">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,6">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding RecipeName}" FontWeight="Bold" FontSize="12"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Description}" FontSize="10.5" Foreground="{StaticResource BrushTextMuted}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                                            <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                                <Border Background="#F1F5F9" CornerRadius="4" Padding="4,1" Margin="0,0,6,0">
+                                                    <TextBlock Text="{Binding CategoryDisplayName}" FontSize="9.5" Foreground="#475569" FontWeight="SemiBold"/>
+                                                </Border>
+                                                <Border Background="#ECFDF5" CornerRadius="4" Padding="4,1">
+                                                    <TextBlock Text="{Binding ExpectedYieldPercentage, StringFormat='{}Randıman: %{0:N0}'}" FontSize="9.5" Foreground="#059669" FontWeight="Bold"/>
+                                                </Border>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <!-- Shelf life extension badge -->
+                                        <Border Grid.Column="1" Background="#FEF3C7" BorderBrush="#FCD34D" BorderThickness="1" CornerRadius="6" Padding="6,4" VerticalAlignment="Center">
+                                            <StackPanel HorizontalAlignment="Center">
+                                                <TextBlock Text="{Binding ShelfLifeExtensionDays, StringFormat='{}+{0} Gün'}" FontSize="11" FontWeight="Black" Foreground="#B45309" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="İlave SKT" FontSize="8.5" Foreground="#92400E" HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- Recipe Detail & Action Header -->
+                    <Grid Grid.Row="2" Margin="0,8,0,6">
+                        <TextBlock Text="Reçete İçeriği &amp; Oranları (BOM):" FontSize="11.5" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Command="{Binding OpenEditRecipeModalCommand}" CommandParameter="{Binding SelectedRecipe}"
+                                    Content="✏️ Düzenle" Style="{StaticResource FluentSecondaryButton}" Height="26" Padding="8,0" FontSize="10" Margin="0,0,4,0"/>
+                            <Button Command="{Binding DeleteRecipeCommand}" CommandParameter="{Binding SelectedRecipe}"
+                                    Content="🗑 Sil" Style="{StaticResource FluentSecondaryButton}" Height="26" Padding="8,0" FontSize="10" Foreground="#DC2626"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Recipe Items Grid -->
+                    <Border Grid.Row="3" Background="#F8FAFC" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="8" Padding="0">
+                        <DataGrid ItemsSource="{Binding SelectedRecipe.Items}" Style="{StaticResource FluentDataGrid}" BorderThickness="0"
+                                  AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Bileşen Adı" Binding="{Binding ItemName}" Width="2*" FontWeight="Bold"/>
+                                <DataGridTextColumn Header="Tür" Binding="{Binding ItemTypeDisplayName}" Width="1.4*"/>
+                                <DataGridTextColumn Header="Oran %" Binding="{Binding PercentageRatio, StringFormat='{}%{0:N1}'}" Width="1*" FontWeight="Bold" Foreground="#B45309"/>
+                                <DataGridTextColumn Header="Açıklama" Binding="{Binding Description}" Width="2*" Foreground="{StaticResource BrushTextMuted}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- ============================================================= -->
+            <!-- COLUMN 2: CANLI SİMÜLASYON, HESAPLAMA & DÖNÜŞÜM İCRA       -->
+            <!-- ============================================================= -->
+            <Border Grid.Column="4" Style="{StaticResource FluentCard}" Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Section Header -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,12">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⚡" FontSize="16" Margin="0,0,6,0"/>
+                            <TextBlock Text="{Binding LSimTitle}" FontSize="13.5" FontWeight="Bold" Foreground="#16A34A"/>
+                        </StackPanel>
+                        <TextBlock Text="{Binding LSimDesc}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"/>
+                    </StackPanel>
+
+                    <!-- Body: Inputs & Computed Requirements -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,12">
+                        <StackPanel>
+                            <!-- Input Weight Selector -->
+                            <Border Background="#FFFBEB" BorderBrush="#FDE68A" BorderThickness="1.5" CornerRadius="10" Padding="14" Margin="0,0,0,12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="140"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="DÖNÜŞTÜRÜLECEK ET MİKTARI" FontSize="11" FontWeight="Bold" Foreground="#92400E"/>
+                                        <TextBlock Text="Reyondaki partiden ne kadar etin bu reçeteye aktarılacağı:" FontSize="10.5" Foreground="#78350F" Margin="0,2,0,0"/>
+                                        <TextBlock Text="{Binding SelectedBatch.ProductName, StringFormat='{}Seçili: {0}'}" FontSize="11" FontWeight="Bold" Foreground="#9E1B32" Margin="0,4,0,0"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBox Text="{Binding RawMeatQuantityKg, UpdateSourceTrigger=PropertyChanged, StringFormat='{}{0:N2}'}"
+                                                 Style="{StaticResource FluentTextBox}" Height="36" FontSize="16" FontWeight="Black" 
+                                                 Foreground="#B45309" TextAlignment="Right" Padding="8,4"
+                                                 TextChanged="RawMeatQuantityTextBox_TextChanged"/>
+                                        <TextBlock Text="Kg" FontSize="10" HorizontalAlignment="Right" Foreground="#92400E" Margin="0,2,4,0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Live Ingredient Requirements Table -->
+                            <TextBlock Text="Gereken Yardımcı Malzeme &amp; Baharat İhtiyacı:" FontWeight="Bold" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,6"/>
+                            <Border Background="#F8FAFC" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="8" Padding="0" Margin="0,0,0,12">
+                                <DataGrid ItemsSource="{Binding CurrentSimulation.RequiredIngredients}" Style="{StaticResource FluentDataGrid}" BorderThickness="0"
+                                          AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" MaxHeight="180">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Malzeme Adı" Binding="{Binding ItemName}" Width="2*" FontWeight="SemiBold"/>
+                                        <DataGridTextColumn Header="Oran" Binding="{Binding PercentageRatio, StringFormat='{}%{0:N1}'}" Width="1*"/>
+                                        <DataGridTextColumn Header="Gereken Miktar" Binding="{Binding RequiredWeightKg, Converter={StaticResource WeightConv}}" Width="1.5*" FontWeight="Bold" Foreground="#16A34A"/>
+                                        <DataGridTextColumn Header="Tutar" Binding="{Binding SubtotalCost, Converter={StaticResource CurrencyConv}}" Width="1.3*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Border>
+
+                            <!-- Calculations & Results Card -->
+                            <Border Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1.5" CornerRadius="10" Padding="14">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Output Weight -->
+                                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                                        <TextBlock Text="Elde Edilecek Net Mamul Ağırlığı:" FontSize="11.5" FontWeight="SemiBold" Foreground="#166534"/>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                            <TextBlock Text="{Binding CurrentSimulation.OutputProductKg, Converter={StaticResource WeightConv}}" 
+                                                       FontSize="15" FontWeight="Black" Foreground="#15803D"/>
+                                            <TextBlock Text="{Binding CurrentSimulation.ExpectedYieldPercentage, StringFormat='{} (%{0:N0} Randıman)'}" 
+                                                       FontSize="11" FontWeight="Bold" Foreground="#16A34A" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Unit Cost -->
+                                    <Grid Grid.Row="1" Margin="0,0,0,8">
+                                        <TextBlock Text="Yeni Mamul Birim Maliyeti:" FontSize="11.5" FontWeight="SemiBold" Foreground="#166534"/>
+                                        <TextBlock HorizontalAlignment="Right" Text="{Binding CurrentSimulation.NewUnitCostPerKg, Converter={StaticResource CurrencyConv}}" 
+                                                   FontSize="13" FontWeight="Bold" Foreground="#166534"/>
+                                    </Grid>
+
+                                    <!-- New Shelf Expiry Date -->
+                                    <Grid Grid.Row="2" Margin="0,0,0,8">
+                                        <StackPanel>
+                                            <TextBlock Text="Hesaplanan Yeni Son Kullanım Tarihi:" FontSize="11.5" FontWeight="Bold" Foreground="#166534"/>
+                                            <TextBlock Text="{Binding CurrentSimulation.ShelfLifeExtensionDays, StringFormat='{}(İşlemle kazanılan ilave raf ömrü: +{0} Gün)'}" 
+                                                       FontSize="10" Foreground="#15803D"/>
+                                        </StackPanel>
+                                        <Border HorizontalAlignment="Right" Background="#DCFCE7" BorderBrush="#22C55E" BorderThickness="1" CornerRadius="6" Padding="8,4">
+                                            <TextBlock Text="{Binding CurrentSimulation.NewCalculatedExpiryDate, StringFormat='{}{0:dd.MM.yyyy}'}" 
+                                                       FontSize="14" FontWeight="Black" Foreground="#15803D"/>
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Cost Total -->
+                                    <Grid Grid.Row="3" Margin="0,4,0,0">
+                                        <TextBlock Text="Toplam Parti Maliyeti:" FontSize="11" Foreground="#166534"/>
+                                        <TextBlock HorizontalAlignment="Right" Text="{Binding CurrentSimulation.TotalBatchCost, Converter={StaticResource CurrencyConv}}" 
+                                                   FontSize="12" FontWeight="SemiBold" Foreground="#166534"/>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Execute Button -->
+                    <Button Grid.Row="2" Command="{Binding ExecuteReprocessingCommand}"
+                            Content="{Binding LocTitle, FallbackValue='✓ DÖNÜŞÜMÜ GERÇEKLEŞTİR VE STOĞA AL'}"
+                            Style="{StaticResource FluentPrimaryButton}" Height="46" FontSize="13.5" FontWeight="Black"
+                            Background="#16A34A" Padding="20,0" HorizontalAlignment="Stretch"/>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ============================================================= -->
+        <!-- TAB 1: GIDA GÜVENLİĞİ & KALİTE KONTROL (pH / Aw / SICAKLIK)   -->
+        <!-- ============================================================= -->
+        <Grid Visibility="{Binding SelectedTabIndex, Converter={StaticResource IntToVis}, ConverterParameter=1}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3.5*"/>
+                <ColumnDefinition Width="14"/>
+                <ColumnDefinition Width="6.5*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Sol Panel: Yeni Muayene Girişi -->
+            <Border Grid.Column="0" Style="{StaticResource FluentCard}" Padding="16">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <!-- Başlık -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                            <Border Background="#16A34A" CornerRadius="8" Width="36" Height="36" Margin="0,0,10,0">
+                                <TextBlock Text="🔬" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="🧪 Yeni Kalite &amp; pH Kontrolü" FontWeight="Bold" FontSize="14" Foreground="#166534"/>
+                                <TextBlock Text="Et partisi pH, su aktivitesi (Aw) ve sıcaklık ölçümü" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Form Alanları -->
+                        <TextBlock Text="Parti No / Lot" FontSize="11" FontWeight="Bold" Margin="0,4,0,2"/>
+                        <TextBox Text="{Binding NewQcBatchLot, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="34" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="Et Türü / Ürün Adı" FontSize="11" FontWeight="Bold" Margin="0,4,0,2"/>
+                        <TextBox Text="{Binding NewQcProductName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="34" Margin="0,0,0,10"/>
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Ölçülen pH" FontSize="11" FontWeight="Bold" Margin="0,0,0,2"/>
+                                <TextBox Text="{Binding NewQcPh, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="34" FontWeight="Black" FontSize="13" Foreground="#9E1B32"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Su Aktivitesi (Aw)" FontSize="11" FontWeight="Bold" Margin="0,0,0,2"/>
+                                <TextBox Text="{Binding NewQcAw, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="34" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Çekirdek Sıcaklığı (°C)" FontSize="11" FontWeight="Bold" Margin="0,0,0,2"/>
+                                <TextBox Text="{Binding NewQcTemp, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="34"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="HACCP Denetçisi" FontSize="11" FontWeight="Bold" Margin="0,0,0,2"/>
+                                <TextBox Text="{Binding NewQcInspector, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="34"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Açıklama / Muayene Notu" FontSize="11" FontWeight="Bold" Margin="0,4,0,2"/>
+                        <TextBox Text="{Binding NewQcNotes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="50" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,0,0,14"/>
+
+                        <Button Command="{Binding RecordNewQualityCheckCommand}" Content="✓ Kalite Kontrolünü Kaydet &amp; Doğrula"
+                                Style="{StaticResource FluentPrimaryButton}" Height="40" Background="#16A34A" FontWeight="Bold" Margin="0,0,0,14"/>
+
+                        <!-- Kritik Limit CCP Kural Kartı -->
+                        <Border Background="#FEF2F2" BorderBrush="#F87171" BorderThickness="1.5" CornerRadius="8" Padding="12">
+                            <StackPanel>
+                                <TextBlock Text="🔬 Kritik Gıda Güvenliği Limiti (CCP):" FontWeight="Bold" FontSize="11.5" Foreground="#991B1B" Margin="0,0,0,4"/>
+                                <TextBlock Text="Taze et pH değeri normalde 5.40 - 5.80 aralığındadır. pH > 6.20 ise kokuşma ve mikrobiyal bozulma başlamıştır; bu et kesinlikle soslansa dahi kurtarılamaz, sistemce derhal bloke edilir ve imhaya ayrılır." FontSize="10.5" Foreground="#7F1D1D" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Sağ Panel: Muayene Kayıtları Tablosu -->
+            <Border Grid.Column="2" Style="{StaticResource FluentCard}" Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0,0,0,12">
+                        <TextBlock Text="📋 HACCP &amp; Kalite Kontrol Muayene Kayıtları" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}"/>
+                        <TextBlock Text="Proses kontrolleri, pH ölçümleri ve blokaj/onay geçmişi" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                    </StackPanel>
+
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding QualityChecks}" Style="{StaticResource FluentDataGrid}" BorderThickness="0"
+                              AutoGenerateColumns="False" CanUserAddRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Muayene No" Binding="{Binding InspectionNumber}" Width="1.3*" FontWeight="Bold"/>
+                            <DataGridTextColumn Header="Parti No" Binding="{Binding BatchLotNumber}" Width="1.2*"/>
+                            <DataGridTextColumn Header="Ürün Adı" Binding="{Binding ProductName}" Width="1.4*"/>
+                            <DataGridTextColumn Header="Tarih" Binding="{Binding InspectionDate, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" Width="1.2*"/>
+                            <DataGridTextColumn Header="pH" Binding="{Binding MeasuredPh, StringFormat='{}{0:N2}'}" Width="0.8*" FontWeight="Black"/>
+                            <DataGridTextColumn Header="Aw" Binding="{Binding MeasuredWaterActivityAw, StringFormat='{}{0:N2}'}" Width="0.7*"/>
+                            <DataGridTextColumn Header="Sıcaklık" Binding="{Binding MeasuredCoreTempCelsius, StringFormat='{}{0:N1} °C'}" Width="0.9*"/>
+                            <DataGridTemplateColumn Header="Karar" Width="2*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border CornerRadius="4" Padding="6,2" HorizontalAlignment="Left" Background="#F1F5F9">
+                                            <TextBlock Text="{Binding QualityVerdict}" FontSize="10.5" FontWeight="Bold"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Denetçi" Binding="{Binding InspectorName}" Width="1.3*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ============================================================= -->
+        <!-- TAB 2: BAHARAT, SOS & AMBALAJ DEPOSU                          -->
+        <!-- ============================================================= -->
+        <Grid Visibility="{Binding SelectedTabIndex, Converter={StaticResource IntToVis}, ConverterParameter=2}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="7*"/>
+                <ColumnDefinition Width="14"/>
+                <ColumnDefinition Width="3*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Sol Panel: Sarf Malzeme Envanteri -->
+            <Border Grid.Column="0" Style="{StaticResource FluentCard}" Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0,0,0,12">
+                        <TextBlock Text="🧂 Baharat, Sos, Doğal Bağırsak &amp; Ambalaj Sarf Envanteri" FontWeight="Bold" FontSize="14" Foreground="#B45309"/>
+                        <TextBlock Text="Kurtarma reçetelerinde kullanılan tüm harç, sos, kılıf ve vakum poşet stokları" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                    </StackPanel>
+
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding AuxiliaryStocks}" SelectedItem="{Binding SelectedAuxiliaryStock}"
+                              Style="{StaticResource FluentDataGrid}" BorderThickness="0" AutoGenerateColumns="False" CanUserAddRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Kod" Binding="{Binding MaterialCode}" Width="1.1*" FontWeight="Bold"/>
+                            <DataGridTextColumn Header="Malzeme Adı" Binding="{Binding MaterialName}" Width="2.5*" FontWeight="SemiBold"/>
+                            <DataGridTextColumn Header="Kategori" Binding="{Binding ItemTypeDisplayName}" Width="1.4*"/>
+                            <DataGridTemplateColumn Header="Mevcut Stok" Width="1.3*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Margin="4,2">
+                                            <TextBlock Text="{Binding CurrentStock, StringFormat='{}{0:N2}'}" FontWeight="Black" FontSize="12" Foreground="#B45309"/>
+                                            <TextBlock Text="{Binding UnitOfMeasure, StringFormat='{} {0}'}" FontSize="10.5" Foreground="{StaticResource BrushTextSecondary}" Margin="4,1,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Birim Maliyet" Binding="{Binding UnitCost, Converter={StaticResource CurrencyConv}}" Width="1.2*"/>
+                            <DataGridTextColumn Header="Toplam Değer" Binding="{Binding TotalValue, Converter={StaticResource CurrencyConv}}" Width="1.3*" FontWeight="Bold"/>
+                            <DataGridTextColumn Header="Min Eşik" Binding="{Binding MinStockLevel, StringFormat='{}{0:N1}'}" Width="0.9*"/>
+                            <DataGridTextColumn Header="Saklama Koşulu" Binding="{Binding StorageCondition}" Width="1.6*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <!-- Sağ Panel: Stok Ayarlama & İkmal -->
+            <Border Grid.Column="2" Style="{StaticResource FluentCard}" Padding="16">
+                <StackPanel>
+                    <TextBlock Text="📦 Stok İkmal &amp; Sayım Ayarı" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}" Margin="0,0,0,8"/>
+                    <TextBlock Text="Seçili malzemenin deposunu hızlıca artırın veya sayım düzeltmesi yapın." FontSize="11" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,16"/>
+
+                    <Border Background="#F1F5F9" CornerRadius="8" Padding="12" Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="Seçili Malzeme:" FontSize="10.5" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="{Binding SelectedAuxiliaryStock.MaterialName, FallbackValue='(Bir malzeme seçin)'}" FontWeight="Bold" FontSize="12.5" Margin="0,2,0,4"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Mevcut Stok: " FontSize="11"/>
+                                <TextBlock Text="{Binding SelectedAuxiliaryStock.CurrentStock, StringFormat='{}{0:N2}'}" FontWeight="Bold" Foreground="#B45309"/>
+                                <TextBlock Text="{Binding SelectedAuxiliaryStock.UnitOfMeasure, StringFormat='{} {0}'}" FontSize="11"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="Miktar Değişimi (+/- Ekle/Düş)" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding AuxStockDelta, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="34" FontWeight="Bold" Margin="0,0,0,12"/>
+
+                    <TextBlock Text="İşlem Nedeni / Açıklama" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding AuxStockReason, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="34" Margin="0,0,0,16"/>
+
+                    <Button Command="{Binding AdjustAuxStockCommand}" Content="✓ Malzeme Stokunu Güncelle"
+                            Style="{StaticResource FluentPrimaryButton}" Height="40" Background="#D97706" FontWeight="Bold" Margin="0,0,0,16"/>
+
+                    <Border Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="8" Padding="12">
+                        <StackPanel>
+                            <TextBlock Text="ℹ️ Otomatik Tüketim Bilgisi:" FontWeight="Bold" FontSize="11" Foreground="#1E40AF" Margin="0,0,0,4"/>
+                            <TextBlock Text="Kurtarma Tezgâhında bir reçete (örn. Sucuk, Köfte) dönüştürüldüğünde, ilgili baharat, kılıf ve marinat stokları reçete oranına göre depodan otomatik olarak düşülür." FontSize="10" Foreground="#1E3A8A" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ============================================================= -->
+        <!-- TAB 3: MAKİNE & EKİPMAN PARKI                                 -->
+        <!-- ============================================================= -->
+        <Grid Visibility="{Binding SelectedTabIndex, Converter={StaticResource IntToVis}, ConverterParameter=3}">
+            <Border Style="{StaticResource FluentCard}" Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⚙️" FontSize="18" Margin="0,0,8,0"/>
+                            <TextBlock Text="⚙️ Makine &amp; Ekipman Parkı (Sanitasyon &amp; Hijyen Takibi)" FontWeight="Bold" FontSize="15" Foreground="#0284C7"/>
+                        </StackPanel>
+                        <TextBlock Text="Kıyma, yoğurma, vakumlu marinasyon, sucuk dolum ve UV bıçak sterilizasyon makinelerinin sanitasyon ve operasyonel takip paneli" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"/>
+                    </StackPanel>
+
+                    <!-- Ekipman Kartları ItemsControl -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Equipments}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Width="410" Margin="0,0,16,16" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1.5" CornerRadius="12" Padding="16">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <!-- Row 0: Code, Name, Status Badge -->
+                                            <Grid Grid.Row="0" Margin="0,0,0,10">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding EquipmentCode}" FontSize="10" FontWeight="Bold" Foreground="#0284C7"/>
+                                                    <TextBlock Text="{Binding EquipmentName}" FontSize="13.5" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" Margin="0,1,0,0"/>
+                                                </StackPanel>
+                                                <Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="#DCFCE7" BorderBrush="#22C55E" BorderThickness="1" CornerRadius="6" Padding="8,3">
+                                                    <TextBlock Text="{Binding OperatingStatus}" FontSize="10.5" FontWeight="Bold" Foreground="#15803D"/>
+                                                </Border>
+                                            </Grid>
+
+                                            <!-- Row 1: Type & Capacity -->
+                                            <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,10">
+                                                <Grid>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="Tür: " FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                                                        <TextBlock Text="{Binding EquipmentType}" FontSize="11" FontWeight="Bold"/>
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                        <TextBlock Text="Kapasite: " FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                                                        <TextBlock Text="{Binding CapacityInfo}" FontSize="11" FontWeight="Bold" Foreground="#B45309"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+
+                                            <!-- Row 2: Sanitization info -->
+                                            <StackPanel Grid.Row="2" Margin="0,0,0,10">
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                                                    <TextBlock Text="Son Dezenfeksiyon: " FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                                                    <TextBlock Text="{Binding LastSanitizationDate, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" FontSize="11" FontWeight="SemiBold"/>
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                                                    <TextBlock Text="Uygulayan Usta: " FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                                                    <TextBlock Text="{Binding SanitizedBy}" FontSize="11" FontWeight="SemiBold"/>
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                                                    <TextBlock Text="Kullanılan Ajan: " FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                                                    <TextBlock Text="{Binding SanitizingAgent}" FontSize="11" FontWeight="SemiBold" Foreground="#0284C7"/>
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <!-- Row 3: Notes -->
+                                            <TextBlock Grid.Row="3" Text="{Binding Notes}" FontSize="10.5" Foreground="{StaticResource BrushTextMuted}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+                                            <!-- Row 4: Action Button -->
+                                            <Button Grid.Row="4" Command="{Binding DataContext.MarkEquipmentSanitizedCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}" Content="✨ Dezenfeksiyonu Doğrula &amp; Hazırla"
+                                                    Style="{StaticResource FluentSecondaryButton}" Height="34" FontWeight="Bold" Foreground="#0284C7"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ============================================================= -->
+        <!-- TAB 4: FİNANSAL FİRE ÖNLEME & ROI ANALİTİĞİ                   -->
+        <!-- ============================================================= -->
+        <Grid Visibility="{Binding SelectedTabIndex, Converter={StaticResource IntToVis}, ConverterParameter=4}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <!-- 4 Büyük KPI Kartı -->
+                    <Grid Margin="0,0,0,18">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- KPI 1: Kurtarılan Et -->
+                        <Border Grid.Column="0" Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1.5" CornerRadius="12" Padding="16">
+                            <StackPanel>
+                                <TextBlock Text="🥩 KURTARILAN TOPLAM ET" FontSize="11" FontWeight="Bold" Foreground="#166534"/>
+                                <TextBlock Text="{Binding RoiSummary.TotalSalvagedMeatKg, Converter={StaticResource WeightConv}}" FontSize="24" FontWeight="Black" Foreground="#166534" Margin="0,6,0,4"/>
+                                <TextBlock Text="Reyon SKT yaklaşması nedeniyle imhadan çekilen et" FontSize="10" Foreground="#15803D" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- KPI 2: Önlenen Fire Zararı -->
+                        <Border Grid.Column="2" Background="#FEF2F2" BorderBrush="#FCA5A5" BorderThickness="1.5" CornerRadius="12" Padding="16">
+                            <StackPanel>
+                                <TextBlock Text="🛑 ÖNLENEN FİRE ZARARI" FontSize="11" FontWeight="Bold" Foreground="#991B1B"/>
+                                <TextBlock Text="{Binding RoiSummary.TotalSalvagedValueLira, Converter={StaticResource CurrencyConv}}" FontSize="24" FontWeight="Black" Foreground="#991B1B" Margin="0,6,0,4"/>
+                                <TextBlock Text="İmha edilmeyip üretime aktarılan et hammadde değeri" FontSize="10" Foreground="#B91C1C" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- KPI 3: Mamul Satış Değeri -->
+                        <Border Grid.Column="4" Background="#EFF6FF" BorderBrush="#93C5FD" BorderThickness="1.5" CornerRadius="12" Padding="16">
+                            <StackPanel>
+                                <TextBlock Text="📈 ÜRETİLEN MAMUL DEĞERİ" FontSize="11" FontWeight="Bold" Foreground="#1E40AF"/>
+                                <TextBlock Text="{Binding RoiSummary.TotalReprocessedOutputValueLira, Converter={StaticResource CurrencyConv}}" FontSize="24" FontWeight="Black" Foreground="#1E40AF" Margin="0,6,0,4"/>
+                                <TextBlock Text="Sucuk, köfte ve soslu et olarak kazanılan satış hasılatı" FontSize="10" Foreground="#1D4ED8" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- KPI 4: Net Ekstra Kâr -->
+                        <Border Grid.Column="6" Background="#FAF5FF" BorderBrush="#D8B4FE" BorderThickness="1.5" CornerRadius="12" Padding="16">
+                            <StackPanel>
+                                <TextBlock Text="🚀 KAZANILAN NET EKSTRA KÂR" FontSize="11" FontWeight="Bold" Foreground="#6B21A8"/>
+                                <TextBlock Text="{Binding RoiSummary.TotalNetProfitAddedLira, Converter={StaticResource CurrencyConv}}" FontSize="24" FontWeight="Black" Foreground="#6B21A8" Margin="0,6,0,4"/>
+                                <TextBlock Text="Fire önleme ve katma değer yaratımından net kazanç" FontSize="10" Foreground="#7E22CE" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- Analitik Kartlar -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="14"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Sol Kart -->
+                        <Border Grid.Column="0" Style="{StaticResource FluentCard}" Padding="20">
+                            <StackPanel>
+                                <TextBlock Text="📊 Fire Önleme &amp; Çevre/Ekonomi Verimliliği" FontWeight="Bold" FontSize="14" Foreground="#166534" Margin="0,0,0,10"/>
+                                <Border Background="#DCFCE7" BorderBrush="#22C55E" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,0,0,14">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🏆 %98.4" FontSize="26" FontWeight="Black" Foreground="#15803D" Margin="0,0,14,0"/>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="Fire Önleme ve Kurtarma Başarısı" FontWeight="Bold" FontSize="12.5" Foreground="#166534"/>
+                                            <TextBlock Text="Reyon ömrü dolan etlerin sıfır atık prensibiyle mamule dönüştürülme oranı" FontSize="10.5" Foreground="#15803D"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                <TextBlock Text="• Reyon Son Kullanım Tarihi yaklaşan partiler uyarılır." FontSize="11.5" Margin="0,0,0,6"/>
+                                <TextBlock Text="• Usta kasap eti kıyma, baharat harcı veya marine sosla zenginleştirir." FontSize="11.5" Margin="0,0,0,6"/>
+                                <TextBlock Text="• Çöpe atılacak fire engellenerek yüksek kârlı şarküteri ürününe çevrilir." FontSize="11.5" Margin="0,0,0,6"/>
+                                <TextBlock Text="{Binding RoiSummary.CriticalBatchesSavedCount, StringFormat='{}• Bugüne kadar imhadan kurtarılan kritik parti adedi: {0}'}" FontWeight="Bold" FontSize="11.5" Foreground="#15803D"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Sağ Kart -->
+                        <Border Grid.Column="2" Style="{StaticResource FluentCard}" Padding="20">
+                            <StackPanel>
+                                <TextBlock Text="💡 Katma Değer &amp; Kârlılık Formülasyonu" FontWeight="Bold" FontSize="14" Foreground="#6B21A8" Margin="0,0,0,10"/>
+                                <Border Background="#F3E8FF" BorderBrush="#C084FC" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,0,0,14">
+                                    <StackPanel>
+                                        <TextBlock Text="Formül:" FontSize="10.5" FontWeight="Bold" Foreground="#6B21A8"/>
+                                        <TextBlock Text="Mamul Değeri - (Hammadde Değeri + Baharat/Sos Gideri) = Net Ekstra Kâr" FontSize="11.5" FontWeight="Bold" Foreground="#581C87" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                                <TextBlock Text="Örneğin 400 TL/kg maliyetli reyon kıyması çöpe gitmek üzereyken;" FontSize="11" Margin="0,0,0,4"/>
+                                <TextBlock Text="10 kg kıyma (4.000 TL) + 200 TL baharat/bağırsak harcı ile 10 kg sucuk yapılır." FontSize="11" Margin="0,0,0,4"/>
+                                <TextBlock Text="Sucuk 650 TL/kg fiyatla satılarak 6.500 TL ciro elde edilir." FontSize="11" FontWeight="SemiBold" Foreground="#15803D" Margin="0,0,0,4"/>
+                                <TextBlock Text="Net Kâr: 6.500 - 4.200 = +2.300 TL (ve 4.000 TL fire zararı sıfırlanır!)" FontWeight="Bold" FontSize="11.5" Foreground="#6B21A8" Margin="0,4,0,14"/>
+
+                                <Button Command="{Binding RefreshRoiSummaryCommand}" Content="🔄 Finansal Raporu Yenile"
+                                        Style="{StaticResource FluentSecondaryButton}" Height="36" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+            <!-- ============================================================= -->
+            <!-- TAB 5: SUCUK FERMANTASYON & KURUTMA ODASI (IoT)              -->
+            <!-- ============================================================= -->
+            <Grid Visibility="{Binding SelectedTabIndex, Converter={StaticResource IntToVis}, ConverterParameter=5}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="6*"/>
+                    <ColumnDefinition Width="14"/>
+                    <ColumnDefinition Width="4*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: Curing Batches Table -->
+                <Border Grid.Column="0" Style="{StaticResource FluentCard}" Padding="16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Margin="0,0,0,12">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🌡️" FontSize="18" Margin="0,0,8,0"/>
+                                <TextBlock Text="Kurutma ve Fermantasyon Odasındaki Sucuk Partileri (IoT)" FontSize="15" FontWeight="Bold" Foreground="#EA580C"/>
+                            </StackPanel>
+                            <TextBlock Text="Kantar ve IoT sensörleri ile yeşil ağırlık, kuru ağırlık, nem kaybı % ve laktik asit pH düşüş takibi" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"/>
+                        </StackPanel>
+
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding CuringBatches}" SelectedItem="{Binding SelectedCuringBatch}"
+                                  Style="{StaticResource FluentDataGrid}" BorderThickness="0" SelectionMode="Single"
+                                  AutoGenerateColumns="False" CanUserAddRows="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Parti Kodu" Binding="{Binding CuringLotNumber}" FontWeight="Bold" Width="1.2*"/>
+                                <DataGridTextColumn Header="Sucuk Çeşidi" Binding="{Binding RecipeName}" Width="1.5*"/>
+                                <DataGridTextColumn Header="Başlangıç (kg)" Binding="{Binding InitialGreenWeightKg, Converter={StaticResource WeightConv}}" Width="1*"/>
+                                <DataGridTextColumn Header="Güncel (kg)" Binding="{Binding CurrentWeightKg, Converter={StaticResource WeightConv}}" FontWeight="Bold" Width="1*"/>
+                                <DataGridTextColumn Header="Nem Kaybı" Binding="{Binding CurrentMoistureLossPercentage, StringFormat='{}%{0:N1}'}" FontWeight="Bold" Foreground="#EA580C" Width="1*"/>
+                                <DataGridTextColumn Header="pH (5.60->5.0)" Binding="{Binding CurrentPh, StringFormat='{}{0:N2}'}" FontWeight="Bold" Width="1*"/>
+                                <DataGridTextColumn Header="Oda °C / RH%" Binding="{Binding ChamberSummary}" Width="1.3*"/>
+                                <DataGridTextColumn Header="Süre" Binding="{Binding ElapsedDays, StringFormat='{}{0} Gün'}" Width="0.8*"/>
+                                <DataGridTextColumn Header="Durum" Binding="{Binding Status}" FontWeight="Bold" Width="1.2*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Border>
+
+                <!-- Right: Measurement Entry Card -->
+                <Border Grid.Column="2" Style="{StaticResource FluentCard}" Padding="16">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <TextBlock Text="⚖️ Günlük Kantar &amp; pH Sensör Kaydı" FontSize="14" FontWeight="Bold" Foreground="#EA580C" Margin="0,0,0,6"/>
+                            <TextBlock Text="{Binding SelectedCuringBatch.CuringLotNumber, StringFormat='{}Seçili Parti: {0}'}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushAccent}" Margin="0,0,0,12"/>
+
+                            <!-- Weight and pH Inputs -->
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Ölçülen Ağırlık (kg)" FontSize="11" FontWeight="Bold"/>
+                                    <TextBox Text="{Binding NewCuringWeightKg, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="32" Margin="0,4,0,0"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Ölçülen pH (Hedef &lt;=5.3)" FontSize="11" FontWeight="Bold"/>
+                                    <TextBox Text="{Binding NewCuringPh, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="32" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Chamber Temp & Humidity Inputs -->
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Oda Sıcaklığı (°C)" FontSize="11" FontWeight="Bold"/>
+                                    <TextBox Text="{Binding NewCuringTemp, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="32" Margin="0,4,0,0"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Bağıl Nem (% RH)" FontSize="11" FontWeight="Bold"/>
+                                    <TextBox Text="{Binding NewCuringHumidity, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="32" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Notes -->
+                            <TextBlock Text="Gözlem Notu / Kabuk Bağlama" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding CuringMeasurementNotes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="50" TextWrapping="Wrap" Margin="0,0,0,14"/>
+
+                            <Button Command="{Binding RecordCuringMeasurementCommand}" Content="✓ IoT Sensör &amp; Tartım Kaydet"
+                                    Style="{StaticResource FluentPrimaryButton}" Height="38" FontWeight="Bold" Background="#EA580C" Margin="0,0,0,16"/>
+
+                            <!-- Criteria Box -->
+                            <Border Background="#FFF7ED" BorderBrush="#FDBA74" BorderThickness="1" CornerRadius="8" Padding="12">
+                                <StackPanel>
+                                    <TextBlock Text="🎯 Olgunlaşma &amp; Satış Kriterleri (HACCP CCP-3):" FontWeight="Bold" FontSize="11.5" Foreground="#C2410C" Margin="0,0,0,6"/>
+                                    <TextBlock Text="1) Nem Kaybı: En az %12 (kuru ağırlık hedefine ulaşılmalı)." FontSize="10.5" Foreground="#9A3412" Margin="0,0,0,3"/>
+                                    <TextBlock Text="2) pH Düşüşü: &lt;= 5.30 (Laktik asit fermantasyonu ile patojenler engellenir)." FontSize="10.5" Foreground="#9A3412" Margin="0,0,0,3"/>
+                                    <TextBlock Text="3) Sıcaklık: +14°C - +16°C, Nem: %75 - %82 RH." FontSize="10.5" Foreground="#9A3412"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+
+            <!-- ============================================================= -->
+            <!-- TAB 6: ORGANOLEPTİK & DUYUSAL TEST (1-5 SKORLAMA)             -->
+            <!-- ============================================================= -->
+            <Grid Visibility="{Binding SelectedTabIndex, Converter={StaticResource IntToVis}, ConverterParameter=6}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="6.5*"/>
+                    <ColumnDefinition Width="14"/>
+                    <ColumnDefinition Width="3.5*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: Sensory Checks List -->
+                <Border Grid.Column="0" Style="{StaticResource FluentCard}" Padding="16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Margin="0,0,0,12">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="👃" FontSize="18" Margin="0,0,8,0"/>
+                                <TextBlock Text="Organoleptik &amp; Kör Duyusal Muayene Kütüğü" FontSize="15" FontWeight="Bold" Foreground="#059669"/>
+                            </StackPanel>
+                            <TextBlock Text="Koku, et dokusu/sertliği ve renk muayenesi. Ortalama skor &lt; 3.0 ise et kurtarılamaz ve imhaya ayrılır." FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"/>
+                        </StackPanel>
+
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding SensoryChecks}" Style="{StaticResource FluentDataGrid}"
+                                  BorderThickness="0" AutoGenerateColumns="False" CanUserAddRows="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Muayene No" Binding="{Binding InspectionNumber}" FontWeight="Bold" Width="1.2*"/>
+                                <DataGridTextColumn Header="Parti No" Binding="{Binding BatchLotNumber}" Width="1.2*"/>
+                                <DataGridTextColumn Header="Ürün" Binding="{Binding ProductName}" Width="1.4*"/>
+                                <DataGridTextColumn Header="Koku (1-5)" Binding="{Binding SmellScore, StringFormat='{}{0}/5'}" Width="0.8*"/>
+                                <DataGridTextColumn Header="Doku (1-5)" Binding="{Binding TextureElasticityScore, StringFormat='{}{0}/5'}" Width="0.8*"/>
+                                <DataGridTextColumn Header="Renk (1-5)" Binding="{Binding ColorAppearanceScore, StringFormat='{}{0}/5'}" Width="0.8*"/>
+                                <DataGridTextColumn Header="Ortalama" Binding="{Binding AverageScore, StringFormat='{}{0:N1}'}" FontWeight="Bold" Foreground="#059669" Width="0.9*"/>
+                                <DataGridTextColumn Header="Karar" Binding="{Binding Verdict}" FontWeight="SemiBold" Width="1.5*"/>
+                                <DataGridTextColumn Header="Muayene Eden" Binding="{Binding InspectorName}" Width="1.2*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Border>
+
+                <!-- Right: New Sensory Check Entry -->
+                <Border Grid.Column="2" Style="{StaticResource FluentCard}" Padding="16">
+                    <StackPanel>
+                        <TextBlock Text="🧪 Yeni Duyusal Muayene Kaydet" FontSize="14" FontWeight="Bold" Foreground="#059669" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="Parti / Lot Numarası:" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding SensoryBatchLot, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="32" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="Et Çeşidi / Parça Adı:" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding SensoryProductName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="32" Margin="0,0,0,10"/>
+
+                        <!-- Scores (1 to 5) -->
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Koku (1-5)" FontSize="10.5" FontWeight="Bold"/>
+                                <TextBox Text="{Binding SensorySmellScore, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="32" Margin="0,3,0,0"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Doku (1-5)" FontSize="10.5" FontWeight="Bold"/>
+                                <TextBox Text="{Binding SensoryTextureScore, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="32" Margin="0,3,0,0"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="Renk (1-5)" FontSize="10.5" FontWeight="Bold"/>
+                                <TextBox Text="{Binding SensoryColorScore, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="32" Margin="0,3,0,0"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Muayene Eden Uzman:" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding SensoryInspector, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="32" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="Duyusal Bulgular &amp; Açıklama:" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding SensoryNotes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="48" TextWrapping="Wrap" Margin="0,0,0,14"/>
+
+                        <Button Command="{Binding RecordSensoryCheckCommand}" Content="✓ Duyusal Testi Kaydet"
+                                Style="{StaticResource FluentPrimaryButton}" Height="38" FontWeight="Bold" Background="#059669" Margin="0,0,0,12"/>
+
+                        <Border Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="8" Padding="10">
+                            <TextBlock Text="⚠️ Kural: Koku, doku veya renkte herhangi biri 3 puanın altındaysa parti reddedilir ve soslama yapılamaz." FontSize="10.5" Foreground="#065F46" TextWrapping="Wrap"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ============================================================= -->
+            <!-- TAB 7: RESMİ İMHA & BERTARAF TUTANAĞI                        -->
+            <!-- ============================================================= -->
+            <Grid Visibility="{Binding SelectedTabIndex, Converter={StaticResource IntToVis}, ConverterParameter=7}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="6.5*"/>
+                    <ColumnDefinition Width="14"/>
+                    <ColumnDefinition Width="3.5*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: Disposal Records List -->
+                <Border Grid.Column="0" Style="{StaticResource FluentCard}" Padding="16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Margin="0,0,0,12">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🗑️" FontSize="18" Margin="0,0,8,0"/>
+                                <TextBlock Text="Bakanlık &amp; HACCP Onaylı Resmi İmha ve Bertaraf Protokolleri" FontSize="15" FontWeight="Bold" Foreground="#DC2626"/>
+                            </StackPanel>
+                            <TextBlock Text="pH > 6.20 veya duyusal testten geçemeyen etlerin çift yetkili onayı ve lisanslı rendering firması ile bertarafı" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"/>
+                        </StackPanel>
+
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding DisposalRecords}" Style="{StaticResource FluentDataGrid}"
+                                  BorderThickness="0" AutoGenerateColumns="False" CanUserAddRows="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Protokol No" Binding="{Binding ProtocolNumber}" FontWeight="Bold" Width="1.2*"/>
+                                <DataGridTextColumn Header="Parti No" Binding="{Binding BatchLotNumber}" Width="1.2*"/>
+                                <DataGridTextColumn Header="İmha Edilen Ürün" Binding="{Binding ProductName}" Width="1.4*"/>
+                                <DataGridTextColumn Header="Miktar (kg)" Binding="{Binding DisposedQuantityKg, Converter={StaticResource WeightConv}}" FontWeight="Bold" Width="1*"/>
+                                <DataGridTextColumn Header="Gerekçe" Binding="{Binding DisposalReason}" Width="1.6*"/>
+                                <DataGridTextColumn Header="HACCP Yetkilisi" Binding="{Binding SecondApprover}" Width="1.2*"/>
+                                <DataGridTextColumn Header="Kasap Şefi" Binding="{Binding FirstApprover}" Width="1.2*"/>
+                                <DataGridTextColumn Header="Rendering Şirketi" Binding="{Binding RenderingCompanyName}" Width="1.4*"/>
+                                <DataGridTextColumn Header="İrsaliye" Binding="{Binding WaybillNumber}" Width="1*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Border>
+
+                <!-- Right: New Disposal Protocol Entry -->
+                <Border Grid.Column="2" Style="{StaticResource FluentCard}" Padding="16">
+                    <StackPanel>
+                        <TextBlock Text="📝 Yeni İmha Protokolü Tanzim Et" FontSize="14" FontWeight="Bold" Foreground="#DC2626" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="İmha Edilecek Miktar (kg):" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding DisposalQuantityKg, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="32" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="İmha Gerekçesi (pH / Kokuşma):" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding DisposalReason, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="46" TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="HACCP / Vet Yetkilisi Onayı:" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding DisposalHaccpOfficer, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="32" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="Kasap Şefi Onayı:" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding DisposalButcherChief, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="32" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="Lisanslı Rendering Firması:" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding DisposalRenderingCompany, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="32" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="Sevk İrsaliye No:" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding DisposalWaybillNo, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="32" Margin="0,0,0,14"/>
+
+                        <Button Command="{Binding CreateDisposalRecordCommand}" Content="🗑️ Resmi Protokolü İmzala &amp; Kaydet"
+                                Style="{StaticResource FluentPrimaryButton}" Height="38" FontWeight="Bold" Background="#DC2626" Margin="0,0,0,10"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ============================================================= -->
+            <!-- TAB 8: PERSONEL SIFIR FİRE PRİMİ & LİDERLİK TABLOSU           -->
+            <!-- ============================================================= -->
+            <Grid Visibility="{Binding SelectedTabIndex, Converter={StaticResource IntToVis}, ConverterParameter=8}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Top Highlight KPI Cards -->
+                <Grid Grid.Row="0" Margin="0,0,0,14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Background="#FEF9C3" BorderBrush="#FACC15" BorderThickness="1.5" CornerRadius="10" Padding="14">
+                        <StackPanel>
+                            <TextBlock Text="👑 Ayın Sıfır Fire Lideri" FontSize="11" FontWeight="Bold" Foreground="#A16207"/>
+                            <TextBlock Text="Ahmet Yılmaz (Usta)" FontSize="16" FontWeight="Black" Foreground="#854D0E" Margin="0,4,0,2"/>
+                            <TextBlock Text="94.8 Puan • 165 kg kurtarıldı" FontSize="10.5" Foreground="#A16207"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="2" Background="#EFF6FF" BorderBrush="#93C5FD" BorderThickness="1.5" CornerRadius="10" Padding="14">
+                        <StackPanel>
+                            <TextBlock Text="🥩 Toplam Kurtarılan Et" FontSize="11" FontWeight="Bold" Foreground="#1D4ED8"/>
+                            <TextBlock Text="413.5 kg" FontSize="16" FontWeight="Black" Foreground="#1E40AF" Margin="0,4,0,2"/>
+                            <TextBlock Text="12 kritik parti mamule dönüştürüldü" FontSize="10.5" Foreground="#1D4ED8"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="4" Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1.5" CornerRadius="10" Padding="14">
+                        <StackPanel>
+                            <TextBlock Text="💰 Kurtarılan Ekonomik Değer" FontSize="11" FontWeight="Bold" Foreground="#15803D"/>
+                            <TextBlock Text="186.075 TL" FontSize="16" FontWeight="Black" Foreground="#166534" Margin="0,4,0,2"/>
+                            <TextBlock Text="Doğrudan işletme kasasında kaldı" FontSize="10.5" Foreground="#15803D"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="6" Background="#FAF5FF" BorderBrush="#D8B4FE" BorderThickness="1.5" CornerRadius="10" Padding="14">
+                        <StackPanel>
+                            <TextBlock Text="🎁 Dağıtılan Personel Primi" FontSize="11" FontWeight="Bold" Foreground="#7E22CE"/>
+                            <TextBlock Text="3.298 TL" FontSize="16" FontWeight="Black" Foreground="#6B21A8" Margin="0,4,0,2"/>
+                            <TextBlock Text="Net katma değerin %1.5-2.0 teşviği" FontSize="10.5" Foreground="#7E22CE"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Leaderboard DataGrid -->
+                <Border Grid.Row="1" Style="{StaticResource FluentCard}" Padding="16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Margin="0,0,0,12">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🏆" FontSize="18" Margin="0,0,8,0"/>
+                                <TextBlock Text="Kasap &amp; Reyon Personeli Sıfır Fire Teşvik Sıralaması (Leaderboard)" FontSize="15" FontWeight="Bold" Foreground="#CA8A04"/>
+                            </StackPanel>
+                            <Button HorizontalAlignment="Right" Command="{Binding RefreshIncentivesCommand}" Content="🔄 Sıralamayı Yenile"
+                                    Style="{StaticResource FluentSecondaryButton}" Height="30" Padding="12,0" FontWeight="Bold"/>
+                        </Grid>
+
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding ButcherIncentives}" Style="{StaticResource FluentDataGrid}"
+                                  BorderThickness="0" AutoGenerateColumns="False" CanUserAddRows="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Usta Kasap / Personel" Binding="{Binding ButcherName}" FontWeight="Bold" Width="2*"/>
+                                <DataGridTextColumn Header="Vardiya / Görev" Binding="{Binding RoleTitle}" Width="1.5*"/>
+                                <DataGridTextColumn Header="Kurtarılan Et" Binding="{Binding TotalRescuedMeatKg, Converter={StaticResource WeightConv}}" FontWeight="Bold" Width="1.2*"/>
+                                <DataGridTextColumn Header="Dönüştürülen Parti" Binding="{Binding TotalBatchesReprocessed, StringFormat='{}{0} Parti'}" Width="1.2*"/>
+                                <DataGridTextColumn Header="Kurtarılan Değer" Binding="{Binding TotalNetValueCreatedLira, Converter={StaticResource CurrencyConv}}" FontWeight="Bold" Width="1.4*"/>
+                                <DataGridTextColumn Header="Sıfır Fire Skoru" Binding="{Binding ZeroWasteScore, StringFormat='{}{0:N1}'}" FontWeight="Black" Foreground="#15803D" Width="1.2*"/>
+                                <DataGridTextColumn Header="Kazanılan Prim (TL)" Binding="{Binding EarnedBonusLira, Converter={StaticResource CurrencyConv}}" FontWeight="Black" Foreground="#B45309" Width="1.4*"/>
+                                <DataGridTextColumn Header="Başarı Derecesi" Binding="{Binding BadgeTitle}" FontWeight="SemiBold" Width="1.5*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- ========================================================================= -->
+        <!-- MODAL 1: REYON SKT TARİHİNİ GÜNCELLEME                                   -->
+        <!-- ========================================================================= -->
+        <Grid Grid.RowSpan="4" Background="#70000000" Visibility="{Binding IsShelfDateModalOpen, Converter={StaticResource BoolToVis}}">
+            <Border Width="500" VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Background="#FFFFFF" BorderBrush="{StaticResource BrushBorder}" BorderThickness="2"
+                    CornerRadius="16" Padding="24" Effect="{StaticResource EffectModalShadow}">
+                <StackPanel>
+                    <!-- Header -->
+                    <Grid Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Background="#9E1B32" CornerRadius="8" Width="36" Height="36" Margin="0,0,12,0">
+                                <TextBlock Text="📅" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Reyon Son Kullanım Tarihini Güncelle" FontSize="15" FontWeight="Bold" Foreground="{StaticResource BrushAccent}"/>
+                                <TextBlock Text="{Binding TargetBatchForDateEdit.ProductName, StringFormat='{}Parti: {0}'}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Button HorizontalAlignment="Right" Command="{Binding CloseShelfDateModalCommand}" Content="✕" Background="Transparent" BorderThickness="0" FontSize="16" Cursor="Hand"/>
+                    </Grid>
+
+                    <!-- Date Picker -->
+                    <TextBlock Text="Yeni Reyon Son Kullanma Tarihi:" FontWeight="Bold" FontSize="11.5" Margin="0,0,0,4"/>
+                    <DatePicker SelectedDate="{Binding EditShelfDate}" Height="36" FontSize="13" Margin="0,0,0,14"/>
+
+                    <!-- Reason -->
+                    <TextBlock Text="Değişiklik Gerekçesi / Açıklama:" FontWeight="Bold" FontSize="11.5" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding EditShelfReason, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource FluentTextBox}" Height="60" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,0,0,18"/>
+
+                    <!-- Actions -->
+                    <Grid>
+                        <Button HorizontalAlignment="Left" Command="{Binding CloseShelfDateModalCommand}" Content="Vazgeç" Style="{StaticResource FluentSecondaryButton}" Height="38" Padding="18,0"/>
+                        <Button HorizontalAlignment="Right" Command="{Binding SaveShelfDateCommand}" Content="✓ Tarihi Kaydet" Style="{StaticResource FluentPrimaryButton}" Height="38" Padding="20,0" FontWeight="Bold" Background="#9E1B32"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ========================================================================= -->
+        <!-- MODAL 2: KULLANICI ÜRÜN REÇETESİ TANIMLAMA & DÜZENLEME                   -->
+        <!-- ========================================================================= -->
+        <Grid Grid.RowSpan="4" Background="#70000000" Visibility="{Binding IsRecipeEditorModalOpen, Converter={StaticResource BoolToVis}}">
+            <Border Width="880" MaxHeight="820" VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Background="#FFFFFF" BorderBrush="{StaticResource BrushBorder}" BorderThickness="2"
+                    CornerRadius="16" Padding="24" Effect="{StaticResource EffectModalShadow}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <Grid Grid.Row="0" Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Background="#B45309" CornerRadius="8" Width="36" Height="36" Margin="0,0,12,0">
+                                <TextBlock Text="📝" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Kullanıcı Ürün Reçetesi Tanımlama / Düzenleme (BOM)" FontSize="16" FontWeight="Bold" Foreground="#B45309"/>
+                                <TextBlock Text="Sucuk, köfte veya soslu marine et reçetesinin oranlarını ve ilave raf ömrünü belirleyin" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Button HorizontalAlignment="Right" Command="{Binding CloseRecipeEditorModalCommand}" Content="✕" Background="Transparent" BorderThickness="0" FontSize="16" Cursor="Hand"/>
+                    </Grid>
+
+                    <!-- Scrollable Form Body -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,16">
+                        <StackPanel>
+                            <!-- Row 1: Code, Name, Category -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.2*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="2.5*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="2*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Reçete Kodu" FontSize="11" FontWeight="Bold"/>
+                                    <TextBox Text="{Binding EditRecipeCode, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="34" Margin="0,4,0,0"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Reçete Adı" FontSize="11" FontWeight="Bold"/>
+                                    <TextBox Text="{Binding EditRecipeName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="34" Margin="0,4,0,0"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Text="Kategori" FontSize="11" FontWeight="Bold"/>
+                                    <ComboBox ItemsSource="{Binding RecipeCategories}" SelectedItem="{Binding EditRecipeCategory}" Height="34" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Row 2: Target Product, Yield %, Shelf Life Extension -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="1.2*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="1.2*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Nihai Mamul Adı" FontSize="11" FontWeight="Bold"/>
+                                    <TextBox Text="{Binding EditTargetProductName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="34" Margin="0,4,0,0"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Randıman (%)" FontSize="11" FontWeight="Bold"/>
+                                    <TextBox Text="{Binding EditExpectedYieldPercentage, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="34" Margin="0,4,0,0"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Text="İlave SKT (Gün)" FontSize="11" FontWeight="Bold" Foreground="#B45309"/>
+                                    <TextBox Text="{Binding EditShelfLifeExtensionDays, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="34" Margin="0,4,0,0" FontWeight="Bold" Foreground="#B45309"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Description & Instructions -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Reçete Açıklaması &amp; Lezzet Profili" FontSize="11" FontWeight="Bold"/>
+                                    <TextBox Text="{Binding EditDescription, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="54" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,4,0,0"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Hazırlama &amp; Marinasyon Talimatı" FontSize="11" FontWeight="Bold"/>
+                                    <TextBox Text="{Binding EditProcessInstructions, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="54" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Ingredients Table -->
+                            <TextBlock Text="Reçete Bileşenleri Listesi (BOM)" FontWeight="Bold" FontSize="12" Margin="0,6,0,6"/>
+                            <Border Background="#F8FAFC" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="8" Padding="0" Margin="0,0,0,12">
+                                <DataGrid ItemsSource="{Binding EditRecipeItems}" Style="{StaticResource FluentDataGrid}" BorderThickness="0"
+                                          AutoGenerateColumns="False" CanUserAddRows="False" MaxHeight="180">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Bileşen Adı" Binding="{Binding ItemName}" Width="2*" FontWeight="Bold"/>
+                                        <DataGridTextColumn Header="Tür" Binding="{Binding ItemType}" Width="1.5*"/>
+                                        <DataGridTextColumn Header="Oran %" Binding="{Binding PercentageRatio, StringFormat='{}%{0:N1}'}" Width="1*" FontWeight="Bold" Foreground="#B45309"/>
+                                        <DataGridTextColumn Header="Birim Maliyet (TL)" Binding="{Binding StandardUnitCost, Converter={StaticResource CurrencyConv}}" Width="1.3*"/>
+                                        <DataGridTextColumn Header="Açıklama" Binding="{Binding Description}" Width="2*"/>
+                                        
+                                        <!-- Remove Button -->
+                                        <DataGridTemplateColumn Width="60">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Button Command="{Binding DataContext.RemoveIngredientCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            CommandParameter="{Binding}" Content="✕" Foreground="#DC2626" Background="Transparent" BorderThickness="0" FontWeight="Bold"/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Border>
+
+                            <!-- Add New Ingredient Sub-Form -->
+                            <Border Background="#FEFCE8" BorderBrush="#FEF08A" BorderThickness="1" CornerRadius="8" Padding="12">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="2*"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="1.5*"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="1*"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="1*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Bileşen Adı" FontSize="10.5" FontWeight="Bold"/>
+                                            <TextBox Text="{Binding NewIngredientName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="30" Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Türü" FontSize="10.5" FontWeight="Bold"/>
+                                            <ComboBox ItemsSource="{Binding RecipeItemTypes}" SelectedItem="{Binding NewIngredientType}" Height="30" Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="4">
+                                            <TextBlock Text="Oran %" FontSize="10.5" FontWeight="Bold"/>
+                                            <TextBox Text="{Binding NewIngredientPercentage, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="30" Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="6">
+                                            <TextBlock Text="Maliyet" FontSize="10.5" FontWeight="Bold"/>
+                                            <TextBox Text="{Binding NewIngredientUnitCost, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="30" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Grid Grid.Row="1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBox Grid.Column="0" Text="{Binding NewIngredientDescription, UpdateSourceTrigger=PropertyChanged}" 
+                                                 Style="{StaticResource FluentTextBox}" Height="30" Margin="0,0,8,0"
+                                                 ToolTip="Bileşenin kullanım amacı / fonksiyonu"/>
+
+                                        <Button Grid.Column="1" Command="{Binding AddIngredientToEditRecipeCommand}"
+                                                Content="➕ Bileşeni Ekle" Style="{StaticResource FluentSecondaryButton}" Height="30" Padding="14,0" FontWeight="Bold"/>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Footer Buttons -->
+                    <Grid Grid.Row="2">
+                        <Button HorizontalAlignment="Left" Command="{Binding CloseRecipeEditorModalCommand}" Content="Vazgeç" Style="{StaticResource FluentSecondaryButton}" Height="40" Padding="20,0"/>
+                        <Button HorizontalAlignment="Right" Command="{Binding SaveRecipeCommand}" Content="✓ Reçeteyi Kaydet" Style="{StaticResource FluentPrimaryButton}" Height="40" Padding="24,0" FontWeight="Bold" Background="#B45309"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ========================================================================= -->
+        <!-- MODAL 3: YASAL TERMAL ETİKET & ALERJEN ÖNİZLEME (ESC/POS & ZPL)          -->
+        <!-- ========================================================================= -->
+        <Grid Grid.RowSpan="4" Background="#70000000" Visibility="{Binding IsThermalLabelModalOpen, Converter={StaticResource BoolToVis}}">
+            <Border Width="600" VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Background="#FFFFFF" BorderBrush="{StaticResource BrushBorder}" BorderThickness="2"
+                    CornerRadius="16" Padding="24" Effect="{StaticResource EffectModalShadow}">
+                <StackPanel>
+                    <!-- Header -->
+                    <Grid Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Background="#0284C7" CornerRadius="8" Width="36" Height="36" Margin="0,0,12,0">
+                                <TextBlock Text="🏷️" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Yasal Termal Etiket ve Alerjen Baskısı" FontSize="15" FontWeight="Bold" Foreground="#0284C7"/>
+                                <TextBlock Text="Bakanlık ve AB/PL Gıda Mevzuatına Uygun 100g Besin Değerleri &amp; Barkod" FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Button HorizontalAlignment="Right" Command="{Binding CloseThermalLabelModalCommand}" Content="✕" Background="Transparent" BorderThickness="0" FontSize="16" Cursor="Hand"/>
+                    </Grid>
+
+                    <!-- Thermal Label Simulation Box (100mm x 80mm aesthetic) -->
+                    <Border Background="#FFFFFF" BorderBrush="#000000" BorderThickness="2" CornerRadius="4" Padding="14" Margin="0,0,0,16">
+                        <StackPanel>
+                            <!-- Label Header: Plant Approval & Dates -->
+                            <Grid Margin="0,0,0,6">
+                                <TextBlock Text="{Binding ThermalLabelPreview.BusinessApprovalNo, StringFormat='{}Onay No: {0}'}" FontSize="10" FontWeight="Bold"/>
+                                <TextBlock HorizontalAlignment="Right" Text="{Binding ThermalLabelPreview.PackagingDate, StringFormat='{}Üretim: {0:dd.MM.yyyy}'}" FontSize="10"/>
+                            </Grid>
+
+                            <!-- Product Name & Net Weight -->
+                            <TextBlock Text="{Binding ThermalLabelPreview.ProductName}" FontSize="16" FontWeight="Black" TextAlignment="Center" Margin="0,4,0,4"/>
+                            
+                            <Grid Margin="0,0,0,8">
+                                <TextBlock Text="{Binding ThermalLabelPreview.NetWeightKg, StringFormat='{}Net Miktar: {0:N3} kg'}" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock HorizontalAlignment="Right" Text="{Binding ThermalLabelPreview.ExpiryDate, StringFormat='{}SKT: {0:dd.MM.yyyy}'}" FontSize="12" FontWeight="Bold" Foreground="#DC2626"/>
+                            </Grid>
+
+                            <Separator Background="#000000" Margin="0,0,0,6"/>
+
+                            <!-- Ingredients with Bold Allergens -->
+                            <TextBlock Text="İçindekiler (Ağırlıkça Azalan Sırayla):" FontSize="9.5" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding ThermalLabelPreview.IngredientsList}" FontSize="9.5" TextWrapping="Wrap" Margin="0,2,0,6"/>
+
+                            <!-- Allergen Notice -->
+                            <Border Background="#FEF2F2" BorderBrush="#FCA5A5" BorderThickness="1" CornerRadius="4" Padding="6,4" Margin="0,0,0,6">
+                                <TextBlock Text="{Binding ThermalLabelPreview.AllergenWarning}" FontSize="9.5" FontWeight="Bold" Foreground="#DC2626" TextWrapping="Wrap"/>
+                            </Border>
+
+                            <!-- Storage Conditions -->
+                            <TextBlock Text="{Binding ThermalLabelPreview.StorageCondition, StringFormat='{}Muhafaza Koşulu: {0}'}" FontSize="9" FontStyle="Italic" Margin="0,0,0,6"/>
+
+                            <Separator Background="#000000" Margin="0,0,0,6"/>
+
+                            <!-- Nutritional Values 100g -->
+                            <TextBlock Text="100g Besin Değerleri:" FontSize="9.5" FontWeight="Bold" Margin="0,0,0,4"/>
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{Binding ThermalLabelPreview.EnergyKcal, StringFormat='{}Enerji: {0:N0} kcal'}" FontSize="9"/>
+                                    <TextBlock Text="{Binding ThermalLabelPreview.ProteinG, StringFormat='{}Protein: {0:N1} g'}" FontSize="9"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="{Binding ThermalLabelPreview.FatG, StringFormat='{}Yağ: {0:N1} g'}" FontSize="9"/>
+                                    <TextBlock Text="{Binding ThermalLabelPreview.SaturatedFatG, StringFormat='{}Doymuş Yağ: {0:N1} g'}" FontSize="9"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="{Binding ThermalLabelPreview.CarbG, StringFormat='{}Karbonhidrat: {0:N1} g'}" FontSize="9"/>
+                                    <TextBlock Text="{Binding ThermalLabelPreview.SaltG, StringFormat='{}Tuz: {0:N2} g'}" FontSize="9"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Barcode -->
+                            <Border Background="#F3F4F6" Padding="6" CornerRadius="4">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="||| |||| |||||||| |||||||||| |||| ||" FontSize="18" FontWeight="Black" FontFamily="Courier New" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding ThermalLabelPreview.Barcode}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Actions -->
+                    <Grid>
+                        <Button HorizontalAlignment="Left" Command="{Binding CloseThermalLabelModalCommand}" Content="Kapat" Style="{StaticResource FluentSecondaryButton}" Height="38" Padding="20,0"/>
+                        <Button HorizontalAlignment="Right" Command="{Binding CloseThermalLabelModalCommand}" Content="🖨️ Etiketi Yazdır (ESC/POS &amp; ZPL)" Style="{StaticResource FluentPrimaryButton}" Height="38" Padding="20,0" FontWeight="Bold" Background="#0284C7"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+    </Grid>
+</UserControl>

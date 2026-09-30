@@ -1,0 +1,79 @@
+<UserControl x:Class="KasapOtomasyon.WPF.Views.UserManagementPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:loc="clr-namespace:KasapOtomasyon.WPF.Markup"
+             mc:Ignorable="d" 
+             d:DesignHeight="850" d:DesignWidth="1200"
+             Background="{StaticResource BrushBgMain}"
+             Foreground="{StaticResource BrushTextPrimary}"
+             FontFamily="Segoe UI Variable, Segoe UI, Inter, sans-serif">
+
+    <Grid Margin="20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.3*"/>
+            <ColumnDefinition Width="16"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- LEFT: Users and Roles Grid -->
+        <Border Grid.Column="0" Style="{StaticResource FluentCard}" Padding="18">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="0,0,0,12">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="👤 " FontSize="18" VerticalAlignment="Center"/>
+                        <TextBlock Text="{loc:Loc users.title}" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource BrushSuccess}" 
+                               FontWeight="SemiBold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </Grid>
+
+                <DataGrid Grid.Row="1" ItemsSource="{Binding Users}" SelectedItem="{Binding SelectedUser}"
+                          Style="{StaticResource FluentDataGrid}" BorderThickness="0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="{loc:Loc users.username}" Binding="{Binding Username}" Width="1.2*" FontWeight="Bold"/>
+                        <DataGridTextColumn Header="{loc:Loc users.fullName}" Binding="{Binding FullName}" Width="1.8*"/>
+                        <DataGridTextColumn Header="{loc:Loc users.role}" Binding="{Binding RoleName}" Width="1.2*" FontWeight="SemiBold"/>
+                        <DataGridCheckBoxColumn Header="{loc:Loc users.active}" Binding="{Binding IsActive}" Width="70"/>
+                        <DataGridTextColumn Header="{loc:Loc users.lastLogin}" Binding="{Binding LastLoginDate, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" Width="130"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <!-- RIGHT: Add / Edit User Form -->
+        <Border Grid.Column="2" Style="{StaticResource FluentCard}" Padding="22">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock Text="{loc:Loc users.newUserTitle}" FontSize="16" FontWeight="Bold" Margin="0,0,0,16"/>
+
+                    <TextBlock Text="{loc:Loc users.username}" Foreground="{StaticResource BrushTextSecondary}" FontSize="12" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding NewUsername, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="36" Margin="0,0,0,12"/>
+
+                    <TextBlock Text="{loc:Loc users.fullName}" Foreground="{StaticResource BrushTextSecondary}" FontSize="12" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding NewFullName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="36" Margin="0,0,0,12"/>
+
+                    <TextBlock Text="{loc:Loc users.password}" Foreground="{StaticResource BrushTextSecondary}" FontSize="12" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="36" Margin="0,0,0,12"/>
+
+                    <TextBlock Text="{loc:Loc users.pinCode}" Foreground="{StaticResource BrushTextSecondary}" FontSize="12" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding NewPinCode, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FluentTextBox}" Height="36" Margin="0,0,0,12"/>
+
+                    <TextBlock Text="{loc:Loc users.roleGroup}" Foreground="{StaticResource BrushTextSecondary}" FontSize="12" Margin="0,0,0,4"/>
+                    <ComboBox ItemsSource="{Binding Roles}" SelectedItem="{Binding NewRole}" DisplayMemberPath="Name" 
+                              Background="{StaticResource BrushBgSurface}" Foreground="#000000" Height="36" Margin="0,0,0,20"/>
+
+                    <Button Command="{Binding CreateUserCommand}" 
+                            Content="{loc:Loc users.saveBtn}" 
+                            Style="{StaticResource FluentPrimaryButton}" Height="44" FontSize="13"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>

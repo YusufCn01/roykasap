@@ -1,0 +1,167 @@
+<UserControl x:Class="KasapOtomasyon.WPF.Views.LicenseView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:conv="clr-namespace:KasapOtomasyon.WPF.Converters"
+             xmlns:loc="clr-namespace:KasapOtomasyon.WPF.Markup"
+             mc:Ignorable="d" 
+             d:DesignHeight="800" d:DesignWidth="1100"
+             Background="{StaticResource BrushBackground}"
+             Foreground="{StaticResource BrushTextPrimary}">
+
+    <UserControl.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Style="{StaticResource FluentCard}" Padding="20,16" Margin="0,0,0,20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <TextBlock Text="{loc:Loc license.title}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushAccentLight}"/>
+                    <TextBlock Text="{loc:Loc license.subtitle}" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,4,0,0"/>
+                </StackPanel>
+
+                <!-- License Badge -->
+                <Border Grid.Column="1" Background="{StaticResource BrushAccentMuted}" CornerRadius="8" Padding="14,8" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding LicenseStatus.LicenseType, StringFormat='Paket: {0}'}" 
+                               FontWeight="Bold" Foreground="{StaticResource BrushAccentLight}" FontSize="13"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Body -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.2*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: Machine Fingerprint & License Status -->
+            <Border Grid.Column="0" Style="{StaticResource FluentCard}" Padding="24">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="{loc:Loc license.fingerprintTitle}" FontSize="15" FontWeight="Bold" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="{loc:Loc license.fingerprintDesc}" 
+                                   Foreground="{StaticResource BrushTextSecondary}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                        <!-- Fingerprint Box -->
+                        <Border Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" 
+                                CornerRadius="8" Padding="14,10" Margin="0,0,0,16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="{Binding MachineInfo.Fingerprint}" FontFamily="Consolas" FontSize="14" FontWeight="Bold" 
+                                           Foreground="#34D399" VerticalAlignment="Center"/>
+
+                                <Button Grid.Column="1" Command="{Binding CopyFingerprintCommand}" 
+                                        Content="{loc:Loc license.copy}" Style="{StaticResource FluentSecondaryButton}" Padding="12,6" FontSize="11"/>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Text="{loc:Loc license.currentStatusTitle}" FontSize="15" FontWeight="Bold" Margin="0,8,0,12"/>
+
+                        <Grid Margin="0,0,0,8">
+                            <TextBlock Text="{loc:Loc license.company}" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="{Binding LicenseStatus.CompanyName}" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,8">
+                            <TextBlock Text="{loc:Loc license.status}" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="{Binding LicenseStatus.Status}" FontWeight="Bold" Foreground="#34D399" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,8">
+                            <TextBlock Text="{loc:Loc license.validUntil}" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="{Binding LicenseStatus.ValidUntil, StringFormat='{}{0:dd.MM.yyyy}'}" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,14">
+                            <TextBlock Text="{loc:Loc license.remainingDays}" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="{Binding LicenseStatus.RemainingDays, StringFormat='{}{0} Gün'}" 
+                                       FontWeight="Bold" Foreground="{StaticResource BrushAccentLight}" FontSize="16" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Separator Background="{StaticResource BrushBorder}" Margin="0,8,0,16"/>
+
+                        <!-- Load License File Action -->
+                        <Button Command="{Binding LoadLicenseFileCommand}" 
+                                Content="{loc:Loc license.loadLicenseBtn}" 
+                                Style="{StaticResource FluentPrimaryButton}" Height="46" FontSize="13" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource BrushSuccess}" 
+                                   FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Right: Feature Flags & Vendor Contact -->
+            <StackPanel Grid.Column="2">
+                <!-- Feature Flag Matrix Card -->
+                <Border Style="{StaticResource FluentCard}" Padding="20" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="{loc:Loc license.featuresTitle}" FontSize="14" FontWeight="Bold" Margin="0,0,0,12"/>
+
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="Dokunmatik POS &amp; Satış" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="✓ Açık" FontWeight="Bold" Foreground="#34D399" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="Stok &amp; Depo &amp; SKT Takibi" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="✓ Açık" FontWeight="Bold" Foreground="#34D399" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="Cari Finans &amp; Kasa Yönetimi" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="✓ Açık" FontWeight="Bold" Foreground="#34D399" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="Mezbaha Üretim &amp; Parçalama BOM" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="✓ Açık" FontWeight="Bold" Foreground="#34D399" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="GİB E-Fatura / E-Arşiv" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="✓ Açık" FontWeight="Bold" Foreground="#34D399" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="Otomatik SMS Hatırlatma" Foreground="{StaticResource BrushTextSecondary}"/>
+                            <TextBlock Text="✓ Açık" FontWeight="Bold" Foreground="#34D399" HorizontalAlignment="Right"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Support & Renewal Contact Card -->
+                <Border Style="{StaticResource FluentCard}" Padding="20">
+                    <StackPanel>
+                        <TextBlock Text="Teknik Destek &amp; Lisans Yenileme" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                        <TextBlock Text="Lisans sürenizi uzatmak, yeni şube/terminal eklemek veya paket yükseltmek için:" Foreground="{StaticResource BrushTextSecondary}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="📞 Destek Hattı: 0850 123 45 67" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,6"/>
+                        <TextBlock Text="✉ E-Posta: lisans@kasapotomasyon.com" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,6"/>
+                        <TextBlock Text="🌐 Web: www.kasapotomasyon.com" FontWeight="SemiBold" FontSize="13"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>
