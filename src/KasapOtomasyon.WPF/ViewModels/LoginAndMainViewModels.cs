@@ -41,6 +41,9 @@ public partial class LoginViewModel : ObservableObject
     [ObservableProperty]
     private LicenseValidationResultDto? licenseInfo;
 
+    [ObservableProperty]
+    private string companyName = "Roy Kasap & Entegre Et";
+
     public event Action<UserDto>? LoginSuccessful;
 
     public LoginViewModel(IAuthService authService, ILicenseService licenseService, ILocalizationService locService)
@@ -62,6 +65,18 @@ public partial class LoginViewModel : ObservableObject
         try
         {
             LicenseInfo = await _licenseService.ValidateLicenseAsync();
+            if (LicenseInfo != null && !string.IsNullOrWhiteSpace(LicenseInfo.CompanyName) && LicenseInfo.CompanyName != "Deneme Sürümü Kullanıcısı")
+            {
+                CompanyName = LicenseInfo.CompanyName;
+            }
+            else
+            {
+                var rec = await _licenseService.GetCurrentLicenseRecordAsync();
+                if (rec != null && !string.IsNullOrWhiteSpace(rec.CompanyName))
+                {
+                    CompanyName = rec.CompanyName;
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -367,11 +382,28 @@ public partial class MainShellViewModel : ObservableObject
             : _locService.Get("shell.scaleConnected");
     }
 
+    [ObservableProperty]
+    private string companyName = "Roy Kasap & Entegre Et";
+
     public async Task InitializeStatusAsync()
     {
         try
         {
             LicenseStatus = await _licenseService.ValidateLicenseAsync();
+            if (LicenseStatus != null && !string.IsNullOrWhiteSpace(LicenseStatus.CompanyName) && LicenseStatus.CompanyName != "Deneme Sürümü Kullanıcısı")
+            {
+                CompanyName = LicenseStatus.CompanyName;
+            }
+            else
+            {
+                var rec = await _licenseService.GetCurrentLicenseRecordAsync();
+                if (rec != null && !string.IsNullOrWhiteSpace(rec.CompanyName))
+                {
+                    CompanyName = rec.CompanyName;
+                }
+            }
+
+            ActivePlantText = $"🏢 {CompanyName} (PLN-IST-01)";
             IsScaleConnected = _scaleAdapter.IsConnected;
             UpdateHeaderStatuses();
             await NotificationCenter.RefreshNotificationsAsync();

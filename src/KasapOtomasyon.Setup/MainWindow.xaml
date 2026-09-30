@@ -1,0 +1,597 @@
+<Window x:Class="KasapOtomasyon.Setup.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:KasapOtomasyon.Setup.ViewModels"
+        mc:Ignorable="d"
+        Title="Roy Kasap - Kurulum Sihirbazı" 
+        Height="650" Width="1000"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Background="#0B0F19"
+        Foreground="#F8FAFC"
+        FontFamily="Segoe UI Variable, Segoe UI, Inter, sans-serif">
+
+    <Window.DataContext>
+        <vm:SetupWizardViewModel/>
+    </Window.DataContext>
+
+    <Window.Resources>
+        <!-- Soft Glow Effects -->
+        <DropShadowEffect x:Key="EffectGlow" Color="#BE123C" BlurRadius="25" Opacity="0.3" ShadowDepth="0"/>
+        <DropShadowEffect x:Key="EffectCard" Color="#000000" BlurRadius="15" Opacity="0.2" ShadowDepth="4"/>
+
+        <!-- Button Styles -->
+        <Style x:Key="PrimaryBtn" TargetType="Button">
+            <Setter Property="Background" Value="#BE123C"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Padding" Value="24,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#E11D48"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bd" Property="Background" Value="#475569"/>
+                                <Setter Property="Foreground" Value="#94A3B8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SecondaryBtn" TargetType="Button">
+            <Setter Property="Background" Value="#1E293B"/>
+            <Setter Property="Foreground" Value="#F8FAFC"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#334155"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SetupTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="#131C2E"/>
+            <Setter Property="Foreground" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="0"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#BE123C"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="46"/> <!-- Top Bar -->
+            <RowDefinition Height="*"/>  <!-- Wizard Body -->
+            <RowDefinition Height="64"/> <!-- Navigation Bar -->
+        </Grid.RowDefinitions>
+
+        <!-- 1. TOP SYSTEM BAR -->
+        <Border Grid.Row="0" Background="#090D16" BorderBrush="#1E293B" BorderThickness="0,0,0,1" Padding="20,0" MouseDown="TopBar_MouseDown">
+            <Grid VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Source="pack://application:,,,/Assets/roy_kasap_logo.png" Height="24" Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="ROY KASAP OTOMASYONU - KURULUM SİHİRBAZI" FontSize="12" FontWeight="Bold" Foreground="#FDA4AF" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <Button Grid.Column="2" Command="{Binding CancelSetupCommand}" Content="✕" Background="Transparent" Foreground="#94A3B8" BorderThickness="0" Width="36" Height="32" FontSize="14" FontWeight="Bold" Cursor="Hand"/>
+            </Grid>
+        </Border>
+
+        <!-- 2. MAIN WIZARD BODY -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280"/> <!-- Left: Stepper Navigation -->
+                <ColumnDefinition Width="*"/>   <!-- Right: Step Pages Content -->
+            </Grid.ColumnDefinitions>
+
+            <!-- LEFT STEPPER PANEL -->
+            <Border Grid.Column="0" Background="#090D16" BorderBrush="#1E293B" BorderThickness="0,0,1,0" Padding="24,30">
+                <Grid>
+                    <!-- Background Glow -->
+                    <Ellipse Width="300" Height="300" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-100,-50,0,0" IsHitTestVisible="False" Opacity="0.12">
+                        <Ellipse.Fill>
+                            <RadialGradientBrush>
+                                <GradientStop Color="#BE123C" Offset="0"/>
+                                <GradientStop Color="Transparent" Offset="0.8"/>
+                            </RadialGradientBrush>
+                        </Ellipse.Fill>
+                    </Ellipse>
+
+                    <StackPanel>
+                        <!-- Header Logo Card -->
+                        <Border Background="#131C2E" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="12" Padding="14,12" Margin="0,0,0,32" Effect="{StaticResource EffectCard}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Image Source="pack://application:,,,/Assets/roy_kasap_icon_512.png" Height="38" Margin="0,0,12,0"/>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Roy Kasap" FontSize="15" FontWeight="Black" Foreground="#FFFFFF"/>
+                                    <TextBlock Text="v2026 Enterprise Setup" FontSize="11" Foreground="#94A3B8"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Step 1 Indicator -->
+                        <Border Background="#131C2E" CornerRadius="10" Padding="14,10" Margin="0,0,0,12">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="28" Height="28" CornerRadius="14" Background="#BE123C" Margin="0,0,12,0">
+                                    <TextBlock Text="1" Foreground="#FFFFFF" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Hoş Geldiniz" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                    <TextBlock Text="Lisans Koşulları" FontSize="11" Foreground="#94A3B8"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Step 2 Indicator -->
+                        <Border Background="#131C2E" CornerRadius="10" Padding="14,10" Margin="0,0,0,12">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="28" Height="28" CornerRadius="14" Background="#BE123C" Margin="0,0,12,0">
+                                    <TextBlock Text="2" Foreground="#FFFFFF" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Firma Bilgileri" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                    <TextBlock Text="Müşteri &amp; Lisans Tanımı" FontSize="11" Foreground="#94A3B8"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Step 3 Indicator -->
+                        <Border Background="#131C2E" CornerRadius="10" Padding="14,10" Margin="0,0,0,12">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="28" Height="28" CornerRadius="14" Background="#BE123C" Margin="0,0,12,0">
+                                    <TextBlock Text="3" Foreground="#FFFFFF" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Kurulum Seçenekleri" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                    <TextBlock Text="Dizin &amp; SQL Yapılandırması" FontSize="11" Foreground="#94A3B8"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Step 4 Indicator -->
+                        <Border Background="#131C2E" CornerRadius="10" Padding="14,10" Margin="0,0,0,12">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="28" Height="28" CornerRadius="14" Background="#BE123C" Margin="0,0,12,0">
+                                    <TextBlock Text="4" Foreground="#FFFFFF" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Otomatik Kurulum" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                    <TextBlock Text="İlerleme &amp; Canlı Log" FontSize="11" Foreground="#94A3B8"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Step 5 Indicator -->
+                        <Border Background="#131C2E" CornerRadius="10" Padding="14,10">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="28" Height="28" CornerRadius="14" Background="#10B981" Margin="0,0,12,0">
+                                    <TextBlock Text="✓" Foreground="#FFFFFF" FontWeight="Bold" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Tamamlandı" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                    <TextBlock Text="Başlatmaya Hazır" FontSize="11" Foreground="#10B981"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- RIGHT CONTENT AREA -->
+            <Border Grid.Column="1" Background="#0B0F19" Padding="36,30">
+                <Grid>
+                    <!-- ================================================================= -->
+                    <!-- STEP 1: WELCOME & LICENSE AGREEMENT                               -->
+                    <!-- ================================================================= -->
+                    <StackPanel x:Name="Step1Panel">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentStep}" Value="1">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+
+                        <TextBlock Text="Roy Kasap Otomasyon Kurulumuna Hoş Geldiniz" FontSize="22" FontWeight="Black" Foreground="#FFFFFF" Margin="0,0,0,6"/>
+                        <TextBlock Text="Profesyonel Entegre Et, Mezbaha &amp; POS Satış Otomasyon Sistemi" FontSize="13" Foreground="#FDA4AF" Margin="0,0,0,20"/>
+
+                        <!-- System Readiness Checklist -->
+                        <Border Background="#131C2E" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="10" Padding="16,12" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="Sistem Gereksinimleri Kontrolü:" FontSize="12" FontWeight="Bold" Foreground="#94A3B8" Margin="0,0,0,8"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="✔ Windows 10 / 11 64-bit İşletim Sistemi" FontSize="11.5" Foreground="#10B981" Margin="0,0,0,4"/>
+                                    <TextBlock Grid.Column="1" Text="✔ Microsoft .NET 8.0 Desktop Runtime" FontSize="11.5" Foreground="#10B981" Margin="0,0,0,4"/>
+                                </Grid>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="✔ Minimum 4 GB RAM &amp; 2 GB Disk Alanı" FontSize="11.5" Foreground="#10B981"/>
+                                    <TextBlock Grid.Column="1" Text="✔ RS232 / USB Terazi &amp; Barkod Desteği" FontSize="11.5" Foreground="#10B981"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- EULA License Text Box -->
+                        <TextBlock Text="Son Kullanıcı Lisans Sözleşmesi (EULA):" FontSize="12" FontWeight="Bold" Foreground="#CBD5E1" Margin="0,0,0,6"/>
+                        <Border Background="#090D16" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="14" Height="210" Margin="0,0,0,16">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <TextBlock TextWrapping="Wrap" FontSize="11.5" Foreground="#94A3B8" LineHeight="18">
+                                    ROY KASAP ENTEGRE ET &amp; MEZBAHA OTOMASYON SİSTEMİ YAZILIM LİSANS SÖZLEŞMESİ&#10;&#10;
+                                    1. LİSANS HAKLARI: Bu yazılım, kurulan firma adına lisanslanmaktadır. Yazılımın izinsiz kopyalanması, dağıtılması veya kopyasının çıkartılması kesinlikle yasaktır.&#10;&#10;
+                                    2. VERİ GÜVENLİĞİ: Roy Kasap Otomasyonu verilerinizi yerel veritabanında (LocalDB/SQLite) kilitli ve şifreli olarak saklar. Veri yedekleme sorumluluğu kullanıcıya aittir.&#10;&#10;
+                                    3. GIDA İZLENEBİLİRLİĞİ &amp; MEZBAHA MEVZUATI: Yazılım, Tarım ve Orman Bakanlığı canlı hayvan pasaportu ve AB SEUROP karkas derecelendirme standartlarına uygun kütle dengesi hesaplamaları yapmaktadır.&#10;&#10;
+                                    4. DESTEK &amp; GÜNCELLEME: Kurulum tamamlandıktan sonra firma bilgileri ve lisans anahtarınız ile otomatik olarak müşteri hesabınız aktif edilecektir.
+                                </TextBlock>
+                            </ScrollViewer>
+                        </Border>
+
+                        <CheckBox IsChecked="{Binding IsLicenseAccepted}" Foreground="#FFFFFF" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center">
+                            <TextBlock Text="Lisans sözleşmesini okudum, şartları ve kullanım koşullarını kabul ediyorum." TextWrapping="Wrap"/>
+                        </CheckBox>
+                    </StackPanel>
+
+                    <!-- ================================================================= -->
+                    <!-- STEP 2: COMPANY & CUSTOMER DETAILS                                -->
+                    <!-- ================================================================= -->
+                    <StackPanel x:Name="Step2Panel">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentStep}" Value="2">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+
+                        <TextBlock Text="Müşteri &amp; Firma Bilgilerini Yapılandırın" FontSize="22" FontWeight="Black" Foreground="#FFFFFF" Margin="0,0,0,4"/>
+                        <TextBlock Text="Giriş ekranında ve faturalarda görünecek resmi firma bilgileri:" FontSize="13" Foreground="#94A3B8" Margin="0,0,0,20"/>
+
+                        <!-- Form Grid -->
+                        <Grid Margin="0,0,0,16">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Company Name (Full Span) -->
+                            <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,14">
+                                <TextBlock Text="🏢 Firma Ünvanı / Şirket Adı (Giriş Ekranında Yazacak): *" Foreground="#FDA4AF" FontSize="12" FontWeight="Bold" Margin="0,0,0,6"/>
+                                <TextBox Text="{Binding CompanyName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource SetupTextBox}" Height="42"/>
+                            </StackPanel>
+
+                            <!-- Authorized Person & Phone -->
+                            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,14">
+                                <TextBlock Text="👤 Yetkili Adı Soyadı:" Foreground="#CBD5E1" FontSize="11.5" FontWeight="Bold" Margin="0,0,0,6"/>
+                                <TextBox Text="{Binding AuthorizedPerson, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource SetupTextBox}" Height="40"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,14">
+                                <TextBlock Text="📞 İletişim Telefonu:" Foreground="#CBD5E1" FontSize="11.5" FontWeight="Bold" Margin="0,0,0,6"/>
+                                <TextBox Text="{Binding Phone, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource SetupTextBox}" Height="40"/>
+                            </StackPanel>
+
+                            <!-- Tax Office & Tax Number -->
+                            <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,14">
+                                <TextBlock Text="🏛 Vergi Dairesi:" Foreground="#CBD5E1" FontSize="11.5" FontWeight="Bold" Margin="0,0,0,6"/>
+                                <TextBox Text="{Binding TaxOffice, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource SetupTextBox}" Height="40"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,0,0,14">
+                                <TextBlock Text="🆔 Vergi No / T.C. No:" Foreground="#CBD5E1" FontSize="11.5" FontWeight="Bold" Margin="0,0,0,6"/>
+                                <TextBox Text="{Binding TaxNumber, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource SetupTextBox}" Height="40"/>
+                            </StackPanel>
+
+                            <!-- City & Address (Full Span) -->
+                            <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,14">
+                                <TextBlock Text="📍 Şehir ve Açık Adres:" Foreground="#CBD5E1" FontSize="11.5" FontWeight="Bold" Margin="0,0,0,6"/>
+                                <TextBox Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource SetupTextBox}" Height="40"/>
+                            </StackPanel>
+
+                            <!-- License Type -->
+                            <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3">
+                                <TextBlock Text="🔑 Kurulacak Lisans Paketi:" Foreground="#CBD5E1" FontSize="11.5" FontWeight="Bold" Margin="0,0,0,6"/>
+                                <ComboBox ItemsSource="{Binding LicenseTypes}" SelectedItem="{Binding SelectedLicenseType}" 
+                                          Background="#131C2E" Foreground="#F8FAFC" FontSize="13" Height="40" Padding="10,8"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- ================================================================= -->
+                    <!-- STEP 3: SETUP OPTIONS & DIRECTORY                                 -->
+                    <!-- ================================================================= -->
+                    <StackPanel x:Name="Step3Panel">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentStep}" Value="3">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+
+                        <TextBlock Text="Kurulum Dizinini ve Seçenekleri Belirleyin" FontSize="22" FontWeight="Black" Foreground="#FFFFFF" Margin="0,0,0,4"/>
+                        <TextBlock Text="Uygulama dosyalarının ve veritabanının yükleneceği konumu seçin:" FontSize="13" Foreground="#94A3B8" Margin="0,0,0,24"/>
+
+                        <!-- Target Path Box -->
+                        <TextBlock Text="📂 Hedef Kurulum Klasörü:" Foreground="#CBD5E1" FontSize="12" FontWeight="Bold" Margin="0,0,0,6"/>
+                        <Grid Margin="0,0,0,24">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Text="{Binding InstallPath, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource SetupTextBox}" Height="42" Margin="0,0,10,0"/>
+                            <Button Grid.Column="1" Command="{Binding BrowseInstallPathCommand}" Content="Gözat..." Style="{StaticResource SecondaryBtn}" Height="42"/>
+                        </Grid>
+
+                        <!-- Options Checkboxes -->
+                        <TextBlock Text="⚙ Kurulum Seçenekleri &amp; Servisler:" Foreground="#CBD5E1" FontSize="12" FontWeight="Bold" Margin="0,0,0,12"/>
+
+                        <Border Background="#131C2E" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="10" Padding="16,14" Margin="0,0,0,12">
+                            <CheckBox IsChecked="{Binding CreateDesktopShortcut}" Foreground="#FFFFFF" FontWeight="SemiBold" FontSize="13">
+                                <TextBlock Text="Masaüstüne 'Roy Kasap Otomasyonu' Kısayolu Ekle" TextWrapping="Wrap"/>
+                            </CheckBox>
+                        </Border>
+
+                        <Border Background="#131C2E" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="10" Padding="16,14" Margin="0,0,0,12">
+                            <CheckBox IsChecked="{Binding CreateStartMenuShortcut}" Foreground="#FFFFFF" FontWeight="SemiBold" FontSize="13">
+                                <TextBlock Text="Başlat Menüsüne Program Kısayolu Ekle" TextWrapping="Wrap"/>
+                            </CheckBox>
+                        </Border>
+
+                        <Border Background="#131C2E" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="10" Padding="16,14" Margin="0,0,0,12">
+                            <CheckBox IsChecked="{Binding UseSqlServer}" Foreground="#FFFFFF" FontWeight="SemiBold" FontSize="13">
+                                <TextBlock Text="SQL Server / LocalDB Motorunu Otomatik İndir ve Kur (Önerilen)" TextWrapping="Wrap"/>
+                            </CheckBox>
+                        </Border>
+
+                        <Border Background="#131C2E" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="10" Padding="16,14">
+                            <CheckBox IsChecked="{Binding InstallBackgroundServices}" Foreground="#FFFFFF" FontWeight="SemiBold" FontSize="13">
+                                <TextBlock Text="Terazi, Barkod Okuyucu ve SMS Entegrasyon Servislerini Otomatik Yapılandır" TextWrapping="Wrap"/>
+                            </CheckBox>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ================================================================= -->
+                    <!-- STEP 4: AUTOMATED INSTALLATION & LIVE LOGS                        -->
+                    <!-- ================================================================= -->
+                    <StackPanel x:Name="Step4Panel">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentStep}" Value="4">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+
+                        <TextBlock Text="Kurulum Gerçekleştiriliyor..." FontSize="22" FontWeight="Black" Foreground="#FFFFFF" Margin="0,0,0,4"/>
+                        <TextBlock Text="Lütfen kurulum tamamlanana kadar bekleyin:" FontSize="13" Foreground="#94A3B8" Margin="0,0,0,20"/>
+
+                        <!-- Progress Bar & Status Text -->
+                        <Grid Margin="0,0,0,16">
+                            <TextBlock Text="{Binding StatusMessage}" FontSize="12.5" FontWeight="Bold" Foreground="#FDA4AF" HorizontalAlignment="Left"/>
+                            <TextBlock Text="{Binding ProgressPercentage, StringFormat='{}{0:F0}%'}" FontSize="13" FontWeight="Bold" Foreground="#10B981" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <ProgressBar Value="{Binding ProgressPercentage}" Minimum="0" Maximum="100" Height="14" Foreground="#BE123C" Background="#1E293B" BorderThickness="0" Margin="0,0,0,20">
+                            <ProgressBar.Template>
+                                <ControlTemplate TargetType="ProgressBar">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="7">
+                                        <Grid x:Name="PART_Track">
+                                            <Rectangle x:Name="PART_Indicator" HorizontalAlignment="Left" RadiusX="7" RadiusY="7">
+                                                <Rectangle.Fill>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                        <GradientStop Color="#BE123C" Offset="0"/>
+                                                        <GradientStop Color="#E11D48" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Rectangle.Fill>
+                                            </Rectangle>
+                                        </Grid>
+                                    </Border>
+                                </ControlTemplate>
+                            </ProgressBar.Template>
+                        </ProgressBar>
+
+                        <!-- Live Terminal Console Log Box -->
+                        <TextBlock Text="Canlı Kurulum Log Çıktısı:" FontSize="12" FontWeight="Bold" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                        <Border Background="#090D16" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="10" Padding="14" Height="260">
+                            <ListBox ItemsSource="{Binding InstallationLogs}" Background="Transparent" BorderThickness="0" 
+                                     Foreground="#10B981" FontFamily="Consolas, Cascadia Code, Courier New" FontSize="11">
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="ListBoxItem">
+                                        <Setter Property="Padding" Value="0,2"/>
+                                        <Setter Property="Background" Value="Transparent"/>
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
+                            </ListBox>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ================================================================= -->
+                    <!-- STEP 5: SETUP COMPLETED & LAUNCH                                  -->
+                    <!-- ================================================================= -->
+                    <StackPanel x:Name="Step5Panel">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentStep}" Value="5">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+
+                        <StackPanel HorizontalAlignment="Center" Margin="0,20,0,0">
+                            <!-- Success Badge Icon -->
+                            <Border Width="80" Height="80" CornerRadius="40" Background="#10B981" Effect="{StaticResource EffectGlow}" Margin="0,0,0,20" HorizontalAlignment="Center">
+                                <TextBlock Text="✓" Foreground="#FFFFFF" FontSize="46" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+
+                            <TextBlock Text="Kurulum Başarıyla Tamamlandı!" FontSize="24" FontWeight="Black" Foreground="#FFFFFF" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                            <TextBlock Text="Roy Kasap Otomasyonu kullanıma hazırdır." FontSize="14" Foreground="#94A3B8" HorizontalAlignment="Center" Margin="0,0,0,24"/>
+
+                            <!-- Summary Card -->
+                            <Border Background="#131C2E" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="12" Padding="24,18" MaxWidth="540" Margin="0,0,0,24">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="🏢 Müşteri Firma:" Foreground="#94A3B8" FontSize="12.5" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding CompanyName}" Foreground="#FFFFFF" FontSize="13" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="🔑 Lisans Paketi:" Foreground="#94A3B8" FontSize="12.5" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding SelectedLicenseType}" Foreground="#FDA4AF" FontSize="13" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="👤 İlk Yönetici Hesabı:" Foreground="#94A3B8" FontSize="12.5" FontWeight="Bold"/>
+                                        <TextBlock Text="admin / admin123 (PIN: 1234)" Foreground="#10B981" FontSize="13" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <Grid>
+                                        <TextBlock Text="📂 Hedef Dizin:" Foreground="#94A3B8" FontSize="12.5" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding InstallPath}" Foreground="#94A3B8" FontSize="12" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <CheckBox IsChecked="{Binding LaunchAfterFinish}" Foreground="#FFFFFF" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" Margin="0,0,0,10">
+                                <TextBlock Text="Roy Kasap Otomasyonunu Şimdi Başlat"/>
+                            </CheckBox>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- 3. BOTTOM NAVIGATION BAR -->
+        <Border Grid.Row="2" Background="#090D16" BorderBrush="#1E293B" BorderThickness="0,1,0,0" Padding="24,0">
+            <Grid VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Command="{Binding CancelSetupCommand}" Content="İptal Et" Style="{StaticResource SecondaryBtn}"/>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Command="{Binding GoBackCommand}" Content="◄ Geri" Margin="0,0,10,0">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SecondaryBtn}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentStep}" Value="1">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentStep}" Value="4">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentStep}" Value="5">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <!-- Next Step Button (Steps 1, 2, 3) -->
+                    <Button Command="{Binding GoNextCommand}" Content="İleri ►">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource PrimaryBtn}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentStep}" Value="4">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentStep}" Value="5">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <!-- Finish Setup Button (Step 5) -->
+                    <Button Command="{Binding FinishSetupCommand}" Content="Tamamla &amp; Çık ➔">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource PrimaryBtn}">
+                                <Setter Property="Background" Value="#10B981"/>
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentStep}" Value="5">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

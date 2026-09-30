@@ -44,6 +44,7 @@
                 <!-- Brand Mini Badge -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <Image Source="pack://application:,,,/Assets/roy_kasap_logo.png" Height="26" Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="{Binding CompanyName}" FontSize="12" FontWeight="Bold" Foreground="#FDA4AF" VerticalAlignment="Center"/>
                     <Border Background="#1E293B" CornerRadius="4" Padding="6,2" Margin="10,0,0,0">
                         <TextBlock Text="v2026.4 ENTERPRISE GLOBAL" FontSize="10" FontWeight="Bold" Foreground="#94A3B8"/>
                     </Border>
@@ -91,10 +92,19 @@
                     </Ellipse>
 
                     <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                        <!-- Main Logo & Title -->
-                        <Border Background="#FFFFFF" CornerRadius="16" Padding="14,10" HorizontalAlignment="Left" Margin="0,0,0,22" Effect="{StaticResource EffectGlow}">
-                            <Image Source="pack://application:,,,/Assets/roy_kasap_logo.png" Height="48" RenderOptions.BitmapScalingMode="HighQuality"/>
-                        </Border>
+                        <!-- Main Logo & Customer Badge -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+                            <Border Background="#FFFFFF" CornerRadius="16" Padding="14,10" HorizontalAlignment="Left" Margin="0,0,12,0" Effect="{StaticResource EffectGlow}">
+                                <Image Source="pack://application:,,,/Assets/roy_kasap_logo.png" Height="42" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Border>
+
+                            <Border Background="#881337" BorderBrush="#E11D48" BorderThickness="1" CornerRadius="12" Padding="14,8" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🏢 " FontSize="14" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding CompanyName}" FontSize="13" FontWeight="Black" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
 
                         <TextBlock Text="{loc:Loc login.title}" FontSize="30" FontWeight="Black" Foreground="#FFFFFF" Margin="0,0,0,6"/>
                         <TextBlock Text="{loc:Loc login.subtitle}" FontSize="14" FontWeight="SemiBold" Foreground="#FDA4AF" Margin="0,0,0,14"/>
@@ -163,7 +173,8 @@
                 <Grid VerticalAlignment="Center" MaxWidth="520" HorizontalAlignment="Center">
                     <StackPanel>
                         <!-- Form Header -->
-                        <TextBlock Text="{loc:Loc login.portalTitle}" FontSize="26" FontWeight="Black" Foreground="#0F172A" Margin="0,0,0,4"/>
+                        <TextBlock Text="{Binding CompanyName}" FontSize="20" FontWeight="Black" Foreground="#BE123C" TextWrapping="Wrap" Margin="0,0,0,2"/>
+                        <TextBlock Text="{loc:Loc login.portalTitle}" FontSize="15" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,4"/>
                         <TextBlock Text="{loc:Loc login.portalSubtitle}" FontSize="13" Foreground="#64748B" Margin="0,0,0,20"/>
 
                         <!-- ONE-CLICK ROLE QUICK SELECTOR (For instantaneous switching) -->
