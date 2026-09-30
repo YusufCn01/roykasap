@@ -19,30 +19,30 @@ public partial class SetupWizardViewModel : ObservableObject
     [ObservableProperty]
     private bool isLicenseAccepted;
 
-    // Step 2: Customer / Company Details
+    // Step 2: Customer / Company Details (BLANK BY DEFAULT - NO DEMO PLACEHOLDERS)
     [ObservableProperty]
-    private string companyName = "Özkanlar Kasap & Entegre Et San. Tic. Ltd. Şti.";
+    private string companyName = string.Empty;
 
     [ObservableProperty]
-    private string authorizedPerson = "Ahmet Özkan";
+    private string authorizedPerson = string.Empty;
 
     [ObservableProperty]
-    private string phone = "+90 532 555 1234";
+    private string phone = string.Empty;
 
     [ObservableProperty]
-    private string taxOffice = "Büyük Mükellefler";
+    private string taxOffice = string.Empty;
 
     [ObservableProperty]
-    private string taxNumber = "3400998877";
+    private string taxNumber = string.Empty;
 
     [ObservableProperty]
-    private string city = "İstanbul";
+    private string city = string.Empty;
 
     [ObservableProperty]
-    private string address = "Atatürk Mah. Hal Cad. No:45 Kadıköy / İstanbul";
+    private string address = string.Empty;
 
     [ObservableProperty]
-    private string selectedLicenseType = "Kurumsal";
+    private string selectedLicenseType = "Kurumsal (Entegre Mezbaha ERP & Çiftlik)";
 
     public List<string> LicenseTypes { get; } = new()
     {
@@ -51,9 +51,9 @@ public partial class SetupWizardViewModel : ObservableObject
         "Kurumsal (Entegre Mezbaha ERP & Çiftlik)"
     };
 
-    // Step 3: Setup Options & Target Path
+    // Step 3: Setup Options & Program Files Target Path
     [ObservableProperty]
-    private string installPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RoyKasap");
+    private string installPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Roy Kasap");
 
     [ObservableProperty]
     private bool createDesktopShortcut = true;
@@ -156,7 +156,7 @@ public partial class SetupWizardViewModel : ObservableObject
         Log($"=== ROY KASAP OTOMASYONU KURULUMU BAŞLATILDI ===");
         Log($"Firma Ünvanı: {CompanyName}");
         Log($"Yetkili Kişi: {AuthorizedPerson}");
-        Log($"Hedef Klasör: {InstallPath}");
+        Log($"Hedef Klasör (Program Files): {InstallPath}");
 
         var config = new SetupConfig
         {
@@ -201,18 +201,20 @@ public partial class SetupWizardViewModel : ObservableObject
         {
             try
             {
-                string mainExe = Path.Combine(InstallPath, "KasapOtomasyon.WPF.exe");
-                if (!File.Exists(mainExe))
+                string mainWpfExe = Path.Combine(InstallPath, "KasapOtomasyon.WPF.exe");
+                if (!File.Exists(mainWpfExe))
                 {
                     var exes = Directory.GetFiles(InstallPath, "*.exe");
-                    mainExe = exes.FirstOrDefault(x => x.Contains("WPF")) ?? exes.FirstOrDefault() ?? mainExe;
+                    mainWpfExe = exes.FirstOrDefault(x => x.EndsWith("WPF.exe", StringComparison.OrdinalIgnoreCase)) 
+                                 ?? exes.FirstOrDefault(x => !x.Contains("Setup", StringComparison.OrdinalIgnoreCase)) 
+                                 ?? mainWpfExe;
                 }
 
-                if (File.Exists(mainExe))
+                if (File.Exists(mainWpfExe))
                 {
                     Process.Start(new ProcessStartInfo
                     {
-                        FileName = mainExe,
+                        FileName = mainWpfExe,
                         WorkingDirectory = InstallPath,
                         UseShellExecute = true
                     });

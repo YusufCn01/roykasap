@@ -8,16 +8,16 @@ namespace KasapOtomasyon.Setup.Services;
 
 public class SetupConfig
 {
-    public string CompanyName { get; set; } = "Özkanlar Kasap & Entegre Et";
-    public string AuthorizedPerson { get; set; } = "Ahmet Özkan";
-    public string Phone { get; set; } = "+90 532 555 1234";
-    public string TaxOffice { get; set; } = "Büyük Mükellefler";
-    public string TaxNumber { get; set; } = "3400998877";
-    public string City { get; set; } = "İstanbul";
-    public string Address { get; set; } = "Atatürk Mah. Hal Cad. No:45 Kadıköy / İstanbul";
-    public string LicenseType { get; set; } = "Kurumsal"; // Standart, Profesyonel, Kurumsal
-    public string LicenseKey { get; set; } = "ROYKASAP-ENTERPRISE-2026-CLIENT";
-    public string InstallPath { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RoyKasap");
+    public string CompanyName { get; set; } = string.Empty;
+    public string AuthorizedPerson { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+    public string TaxOffice { get; set; } = string.Empty;
+    public string TaxNumber { get; set; } = string.Empty;
+    public string City { get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty;
+    public string LicenseType { get; set; } = "Kurumsal (Entegre Mezbaha ERP & Çiftlik)";
+    public string LicenseKey { get; set; } = string.Empty;
+    public string InstallPath { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Roy Kasap");
     public bool CreateDesktopShortcut { get; set; } = true;
     public bool CreateStartMenuShortcut { get; set; } = true;
     public bool UseSqlServer { get; set; } = false;
@@ -32,19 +32,20 @@ public class InstallerEngine
     {
         try
         {
-            // 1. Target Directory Setup (10%)
+            // 1. Target Directory Setup in Program Files (10%)
             progressCallback(5, "Kurulum dizinleri kontrol ediliyor...");
             if (!Directory.Exists(config.InstallPath))
             {
                 Directory.CreateDirectory(config.InstallPath);
             }
-            progressCallback(10, $"✔ Hedef klasör hazır: {config.InstallPath}");
+            progressCallback(10, $"✔ Hedef Program Files klasörü hazır: {config.InstallPath}");
 
-            // 2. Copying Application Files (30%)
-            progressCallback(15, "Uygulama dosyaları ve ikili bileşenler kopyalanıyor...");
-            string sourceDir = AppDomain.CurrentDomain.BaseDirectory;
+            // 2. Locate and Copy WPF Main Application Binaries (30%)
+            progressCallback(15, "Roy Kasap ana otomasyon dosyaları ve ikili bileşenler kopyalanıyor...");
+            string sourceDir = LocateWpfSourceDirectory();
+            progressCallback(20, $"Kaynak dizin belirlendi: {sourceDir}");
             await CopyDirectoryAsync(sourceDir, config.InstallPath, progressCallback);
-            progressCallback(35, "✔ Tüm ikili dosyalar ve görseller kopyalandı.");
+            progressCallback(35, "✔ Tüm ana uygulama dosyaları (KasapOtomasyon.WPF.exe) kopyalandı.");
 
             // 3. Database Engine & Connection String Configuration (50%)
             progressCallback(40, "Veritabanı motoru ve bağlantı dizesi yapılandırılıyor...");
@@ -67,26 +68,29 @@ public class InstallerEngine
             await Task.Delay(800);
             progressCallback(85, "✔ Endüstriyel Donanım & Servis Sürücüleri aktif edildi.");
 
-            // 6. Shortcuts Creation (95%)
+            // 6. Create Shortcuts Explicitly Pointing to KasapOtomasyon.WPF.exe (95%)
             progressCallback(90, "Masaüstü ve Başlat menüsü kısayolları oluşturuluyor...");
-            string mainExe = Path.Combine(config.InstallPath, "KasapOtomasyon.WPF.exe");
-            if (!File.Exists(mainExe))
+            string mainWpfExe = Path.Combine(config.InstallPath, "KasapOtomasyon.WPF.exe");
+
+            if (!File.Exists(mainWpfExe))
             {
-                // Fallback executable search
+                // Fallback search for WPF executable
                 var exes = Directory.GetFiles(config.InstallPath, "*.exe");
-                mainExe = exes.FirstOrDefault(x => x.Contains("WPF")) ?? exes.FirstOrDefault() ?? mainExe;
+                mainWpfExe = exes.FirstOrDefault(x => x.EndsWith("WPF.exe", StringComparison.OrdinalIgnoreCase)) 
+                             ?? exes.FirstOrDefault(x => !x.Contains("Setup", StringComparison.OrdinalIgnoreCase)) 
+                             ?? mainWpfExe;
             }
 
-            if (config.CreateDesktopShortcut && File.Exists(mainExe))
+            if (config.CreateDesktopShortcut && File.Exists(mainWpfExe))
             {
-                ShortcutService.CreateDesktopShortcut(mainExe, "Roy Kasap Otomasyonu");
+                ShortcutService.CreateDesktopShortcut(mainWpfExe, "Roy Kasap Otomasyonu");
             }
 
-            if (config.CreateStartMenuShortcut && File.Exists(mainExe))
+            if (config.CreateStartMenuShortcut && File.Exists(mainWpfExe))
             {
-                ShortcutService.CreateStartMenuShortcut(mainExe, "Roy Kasap Otomasyonu");
+                ShortcutService.CreateStartMenuShortcut(mainWpfExe, "Roy Kasap Otomasyonu");
             }
-            progressCallback(95, "✔ Masaüstü ve Başlat Menüsü kısayolları eklendi.");
+            progressCallback(95, "✔ Masaüstü ve Başlat Menüsü kısayolları (KasapOtomasyon.WPF.exe) eklendi.");
 
             // 7. Complete (100%)
             progressCallback(100, "🎉 Kurulum başarıyla tamamlandı!");
@@ -99,6 +103,41 @@ public class InstallerEngine
         }
     }
 
+    private string LocateWpfSourceDirectory()
+    {
+        string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+
+        if (File.Exists(Path.Combine(baseDir, "KasapOtomasyon.WPF.exe")))
+        {
+            return baseDir;
+        }
+
+        var candidatePaths = new[]
+        {
+            Path.Combine(baseDir, "..", "..", "..", "KasapOtomasyon.WPF", "bin", "Release", "net8.0-windows"),
+            Path.Combine(baseDir, "..", "..", "..", "KasapOtomasyon.WPF", "bin", "Debug", "net8.0-windows"),
+            Path.Combine(baseDir, "src", "KasapOtomasyon.WPF", "bin", "Release", "net8.0-windows"),
+            Path.Combine(baseDir, "src", "KasapOtomasyon.WPF", "bin", "Debug", "net8.0-windows"),
+            @"d:\Roy Kasap\src\KasapOtomasyon.WPF\bin\Debug\net8.0-windows",
+            @"d:\Roy Kasap\src\KasapOtomasyon.WPF\bin\Release\net8.0-windows"
+        };
+
+        foreach (var path in candidatePaths)
+        {
+            try
+            {
+                string fullPath = Path.GetFullPath(path);
+                if (Directory.Exists(fullPath) && File.Exists(Path.Combine(fullPath, "KasapOtomasyon.WPF.exe")))
+                {
+                    return fullPath;
+                }
+            }
+            catch { }
+        }
+
+        return baseDir;
+    }
+
     private async Task CopyDirectoryAsync(string sourceDir, string targetDir, Action<double, string> progressCallback)
     {
         var sourceInfo = new DirectoryInfo(sourceDir);
@@ -109,8 +148,13 @@ public class InstallerEngine
 
         foreach (var file in files)
         {
-            // Skip copying setup executable itself or temp logs if in same folder
-            if (file.Name.StartsWith("KasapOtomasyon.Setup", StringComparison.OrdinalIgnoreCase)) continue;
+            // CRITICAL: NEVER copy setup executable or setup installer files into installation path!
+            if (file.Name.StartsWith("KasapOtomasyon.Setup", StringComparison.OrdinalIgnoreCase) || 
+                file.Name.Equals("Setup.exe", StringComparison.OrdinalIgnoreCase) ||
+                file.Name.StartsWith("Setup", StringComparison.OrdinalIgnoreCase) && file.Extension.Equals(".exe", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
 
             string relativePath = Path.GetRelativePath(sourceDir, file.FullName);
             string destFile = Path.Combine(targetDir, relativePath);
@@ -159,7 +203,7 @@ public class InstallerEngine
         // Company Settings update
         var compObj = new JsonObject
         {
-            ["CompanyName"] = config.CompanyName,
+            ["CompanyName"] = string.IsNullOrWhiteSpace(config.CompanyName) ? "Roy Kasap & Entegre Et" : config.CompanyName,
             ["AuthorizedPerson"] = config.AuthorizedPerson,
             ["TaxNumber"] = config.TaxNumber,
             ["TaxOffice"] = config.TaxOffice,
@@ -173,7 +217,6 @@ public class InstallerEngine
 
         var options = new JsonSerializerOptions { WriteIndented = true };
         string updatedJson = rootNode.ToJsonString(options);
-        await File.ReadAllTextAsync(settingsPath).ContinueWith(_ => { }); // Ensure handles
         await File.WriteAllTextAsync(settingsPath, updatedJson);
     }
 
@@ -194,11 +237,13 @@ public class InstallerEngine
             using var context = new KasapDbContext(optionsBuilder.Options);
             await DbInitializer.InitializeAsync(context);
 
+            string finalCompanyName = string.IsNullOrWhiteSpace(config.CompanyName) ? "Roy Kasap & Entegre Et" : config.CompanyName;
+
             // Update primary company name and app settings
             var primaryCompany = await context.Companies.FirstOrDefaultAsync();
             if (primaryCompany != null)
             {
-                primaryCompany.Name = config.CompanyName;
+                primaryCompany.Name = finalCompanyName;
                 primaryCompany.TaxOffice = config.TaxOffice;
                 primaryCompany.TaxNumber = config.TaxNumber;
                 primaryCompany.Address = config.Address;
@@ -207,7 +252,7 @@ public class InstallerEngine
             var primaryTenant = await context.Tenants.FirstOrDefaultAsync();
             if (primaryTenant != null)
             {
-                primaryTenant.Name = config.CompanyName;
+                primaryTenant.Name = finalCompanyName;
                 primaryTenant.TaxNumber = config.TaxNumber;
                 primaryTenant.ContactPhone = config.Phone;
             }
@@ -215,7 +260,7 @@ public class InstallerEngine
             var activeLicense = await context.LicenseRecords.FirstOrDefaultAsync(r => r.IsActive);
             if (activeLicense != null)
             {
-                activeLicense.CompanyName = config.CompanyName;
+                activeLicense.CompanyName = finalCompanyName;
                 activeLicense.LicensedTo = config.AuthorizedPerson;
             }
 
@@ -223,21 +268,21 @@ public class InstallerEngine
             var compSetting = await context.AppSettings.FirstOrDefaultAsync(s => s.Key == "Company.Name");
             if (compSetting != null)
             {
-                compSetting.Value = config.CompanyName;
+                compSetting.Value = finalCompanyName;
             }
             else
             {
                 await context.AppSettings.AddAsync(new Domain.Entities.AppSetting
                 {
                     Key = "Company.Name",
-                    Value = config.CompanyName,
+                    Value = finalCompanyName,
                     Category = "General",
                     Description = "Müşteri Firma Adı"
                 });
             }
 
             await context.SaveChangesAsync();
-            logCallback($"✔ Müşteri veritabanı '{config.CompanyName}' unvanı ile başarıyla ilklendirildi.");
+            logCallback($"✔ Müşteri veritabanı '{finalCompanyName}' unvanı ile başarıyla ilklendirildi.");
         }
         catch (Exception ex)
         {
