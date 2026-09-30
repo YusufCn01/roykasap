@@ -33,6 +33,11 @@ bld/
 # Visual Studio cache folder
 .vs/
 
+# Local Installer Executables
+Setup.exe
+*.exe
+
+
 # MSTest test Results
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
