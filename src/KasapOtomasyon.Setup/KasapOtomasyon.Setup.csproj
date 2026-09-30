@@ -14,6 +14,7 @@
     <ProjectReference Include="..\KasapOtomasyon.Domain\KasapOtomasyon.Domain.csproj" />
     <ProjectReference Include="..\KasapOtomasyon.Application\KasapOtomasyon.Application.csproj" />
     <ProjectReference Include="..\KasapOtomasyon.Infrastructure\KasapOtomasyon.Infrastructure.csproj" />
+    <ProjectReference Include="..\KasapOtomasyon.WPF\KasapOtomasyon.WPF.csproj" />
   </ItemGroup>
 
   <ItemGroup>

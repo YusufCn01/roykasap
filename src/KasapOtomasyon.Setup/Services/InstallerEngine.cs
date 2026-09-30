@@ -28,6 +28,16 @@ public class InstallerEngine
 {
     private readonly SqlSetupService _sqlService = new();
 
+    private static readonly HashSet<string> BannedDirs = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".vs", ".git", ".agents", ".gemini", "src", "tests", "bin", "obj", "scratch", "brain", "publish", "KasapOtomasyon.Setup", "KasapOtomasyon.LicenseManager"
+    };
+
+    private static readonly HashSet<string> BannedExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".sln", ".csproj", ".cs", ".user", ".suo", ".pdb", ".log", ".md"
+    };
+
     public async Task<bool> ExecuteInstallationAsync(SetupConfig config, Action<double, string> progressCallback)
     {
         try
@@ -74,7 +84,6 @@ public class InstallerEngine
 
             if (!File.Exists(mainWpfExe))
             {
-                // Fallback search for WPF executable
                 var exes = Directory.GetFiles(config.InstallPath, "*.exe");
                 mainWpfExe = exes.FirstOrDefault(x => x.EndsWith("WPF.exe", StringComparison.OrdinalIgnoreCase)) 
                              ?? exes.FirstOrDefault(x => !x.Contains("Setup", StringComparison.OrdinalIgnoreCase)) 
@@ -107,26 +116,29 @@ public class InstallerEngine
     {
         string baseDir = AppDomain.CurrentDomain.BaseDirectory;
 
-        if (File.Exists(Path.Combine(baseDir, "KasapOtomasyon.WPF.exe")))
+        // 1. Check for dedicated Payload subfolder beside Setup.exe
+        string payloadPath = Path.Combine(baseDir, "Payload");
+        if (Directory.Exists(payloadPath) && File.Exists(Path.Combine(payloadPath, "KasapOtomasyon.WPF.exe")))
         {
-            return baseDir;
+            return payloadPath;
         }
 
+        // 2. Search explicit WPF Release / Debug output directories
         var candidatePaths = new[]
         {
-            Path.Combine(baseDir, "..", "..", "..", "KasapOtomasyon.WPF", "bin", "Release", "net8.0-windows"),
-            Path.Combine(baseDir, "..", "..", "..", "KasapOtomasyon.WPF", "bin", "Debug", "net8.0-windows"),
             Path.Combine(baseDir, "src", "KasapOtomasyon.WPF", "bin", "Release", "net8.0-windows"),
             Path.Combine(baseDir, "src", "KasapOtomasyon.WPF", "bin", "Debug", "net8.0-windows"),
-            @"d:\Roy Kasap\src\KasapOtomasyon.WPF\bin\Debug\net8.0-windows",
-            @"d:\Roy Kasap\src\KasapOtomasyon.WPF\bin\Release\net8.0-windows"
+            Path.Combine(baseDir, "..", "..", "..", "KasapOtomasyon.WPF", "bin", "Release", "net8.0-windows"),
+            Path.Combine(baseDir, "..", "..", "..", "KasapOtomasyon.WPF", "bin", "Debug", "net8.0-windows"),
+            @"d:\Roy Kasap\src\KasapOtomasyon.WPF\bin\Release\net8.0-windows",
+            @"d:\Roy Kasap\src\KasapOtomasyon.WPF\bin\Debug\net8.0-windows"
         };
 
-        foreach (var path in candidatePaths)
+        foreach (var candidate in candidatePaths)
         {
             try
             {
-                string fullPath = Path.GetFullPath(path);
+                string fullPath = Path.GetFullPath(candidate);
                 if (Directory.Exists(fullPath) && File.Exists(Path.Combine(fullPath, "KasapOtomasyon.WPF.exe")))
                 {
                     return fullPath;
@@ -135,7 +147,13 @@ public class InstallerEngine
             catch { }
         }
 
-        return baseDir;
+        // 3. Fallback check on baseDir ONLY IF it contains KasapOtomasyon.WPF.exe AND NOT Setup.dll
+        if (File.Exists(Path.Combine(baseDir, "KasapOtomasyon.WPF.exe")) && !File.Exists(Path.Combine(baseDir, "KasapOtomasyon.Setup.dll")))
+        {
+            return baseDir;
+        }
+
+        throw new InvalidOperationException("Roy Kasap (KasapOtomasyon.WPF.exe) uygulama çalışma ikili dosyaları bulunamadı! Lütfen kurulum paketi içeriğini kontrol edin.");
     }
 
     private async Task CopyDirectoryAsync(string sourceDir, string targetDir, Action<double, string> progressCallback)
@@ -148,15 +166,29 @@ public class InstallerEngine
 
         foreach (var file in files)
         {
-            // CRITICAL: NEVER copy setup executable or setup installer files into installation path!
+            // CRITICAL SAFETY FILTER 1: Skip any setup binaries
             if (file.Name.StartsWith("KasapOtomasyon.Setup", StringComparison.OrdinalIgnoreCase) || 
                 file.Name.Equals("Setup.exe", StringComparison.OrdinalIgnoreCase) ||
-                file.Name.StartsWith("Setup", StringComparison.OrdinalIgnoreCase) && file.Extension.Equals(".exe", StringComparison.OrdinalIgnoreCase))
+                (file.Name.StartsWith("Setup", StringComparison.OrdinalIgnoreCase) && file.Extension.Equals(".exe", StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+
+            // CRITICAL SAFETY FILTER 2: Skip banned source code files and extensions
+            if (BannedExtensions.Contains(file.Extension))
             {
                 continue;
             }
 
             string relativePath = Path.GetRelativePath(sourceDir, file.FullName);
+            var pathSegments = relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+            // CRITICAL SAFETY FILTER 3: Skip banned source directories (.vs, src, tests, etc.)
+            if (pathSegments.Any(segment => BannedDirs.Contains(segment)))
+            {
+                continue;
+            }
+
             string destFile = Path.Combine(targetDir, relativePath);
             string? destDir = Path.GetDirectoryName(destFile);
 
