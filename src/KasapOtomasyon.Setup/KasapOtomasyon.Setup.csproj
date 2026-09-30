@@ -27,7 +27,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Assets\**" />
+    <EmbeddedResource Include="Assets\AppPayload.zip" />
+    <Resource Include="Assets\**" Exclude="Assets\AppPayload.zip" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,6 @@
 using System.IO;
+using System.IO.Compression;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using KasapOtomasyon.Infrastructure.Data;
@@ -50,12 +52,32 @@ public class InstallerEngine
             }
             progressCallback(10, $"✔ Hedef Program Files klasörü hazır: {config.InstallPath}");
 
-            // 2. Locate and Copy WPF Main Application Binaries (30%)
-            progressCallback(15, "Roy Kasap ana otomasyon dosyaları ve ikili bileşenler kopyalanıyor...");
-            string sourceDir = LocateWpfSourceDirectory();
-            progressCallback(20, $"Kaynak dizin belirlendi: {sourceDir}");
-            await CopyDirectoryAsync(sourceDir, config.InstallPath, progressCallback);
-            progressCallback(35, "✔ Tüm ana uygulama dosyaları (KasapOtomasyon.WPF.exe) kopyalandı.");
+            // 2. Locate and Copy/Extract WPF Main Application Binaries (35%)
+            progressCallback(15, "Roy Kasap ana otomasyon dosyaları ve ikili bileşenler kuruluyor...");
+            
+            bool copySuccess = false;
+            try
+            {
+                string? sourceDir = LocateWpfSourceDirectory();
+                if (!string.IsNullOrEmpty(sourceDir))
+                {
+                    progressCallback(20, $"Yerel disk kaynak dizininden kopyalanıyor: {sourceDir}");
+                    await CopyDirectoryAsync(sourceDir, config.InstallPath, progressCallback);
+                    copySuccess = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                progressCallback(20, $"Disk kaynak araması tamamlandı ({ex.Message}), gömülü paket aktif ediliyor...");
+            }
+
+            if (!copySuccess)
+            {
+                progressCallback(25, "Gömülü uygulama paketi (AppPayload.zip) çıkartılıyor...");
+                await ExtractEmbeddedPayloadAsync(config.InstallPath, progressCallback);
+            }
+
+            progressCallback(35, "✔ Tüm ana uygulama dosyaları (KasapOtomasyon.WPF.exe) kuruldu.");
 
             // 3. Database Engine & Connection String Configuration (50%)
             progressCallback(40, "Veritabanı motoru ve bağlantı dizesi yapılandırılıyor...");
@@ -112,7 +134,7 @@ public class InstallerEngine
         }
     }
 
-    private string LocateWpfSourceDirectory()
+    private string? LocateWpfSourceDirectory()
     {
         string baseDir = AppDomain.CurrentDomain.BaseDirectory;
 
@@ -123,7 +145,7 @@ public class InstallerEngine
             return payloadPath;
         }
 
-        // 2. Search explicit WPF Release / Debug output directories
+        // 2. Search explicit WPF Release / Debug output directories in workspace
         var candidatePaths = new[]
         {
             Path.Combine(baseDir, "src", "KasapOtomasyon.WPF", "bin", "Release", "net8.0-windows"),
@@ -153,7 +175,57 @@ public class InstallerEngine
             return baseDir;
         }
 
-        throw new InvalidOperationException("Roy Kasap (KasapOtomasyon.WPF.exe) uygulama çalışma ikili dosyaları bulunamadı! Lütfen kurulum paketi içeriğini kontrol edin.");
+        return null;
+    }
+
+    private async Task ExtractEmbeddedPayloadAsync(string targetDir, Action<double, string> progressCallback)
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        string? resourceName = assembly.GetManifestResourceNames()
+            .FirstOrDefault(n => n.EndsWith("AppPayload.zip", StringComparison.OrdinalIgnoreCase));
+
+        if (string.IsNullOrEmpty(resourceName))
+        {
+            throw new InvalidOperationException("Gömülü Roy Kasap uygulama paketi (AppPayload.zip) kurulum kaynaklarında bulunamadı!");
+        }
+
+        using var stream = assembly.GetManifestResourceStream(resourceName);
+        if (stream == null)
+        {
+            throw new InvalidOperationException($"Gömülü paket yayını '{resourceName}' okunamadı.");
+        }
+
+        using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
+        int total = archive.Entries.Count;
+        int count = 0;
+
+        foreach (var entry in archive.Entries)
+        {
+            if (string.IsNullOrEmpty(entry.Name))
+            {
+                string dirPath = Path.Combine(targetDir, entry.FullName);
+                if (!Directory.Exists(dirPath)) Directory.CreateDirectory(dirPath);
+                continue;
+            }
+
+            string destFile = Path.Combine(targetDir, entry.FullName);
+            string? destDir = Path.GetDirectoryName(destFile);
+
+            if (destDir != null && !Directory.Exists(destDir))
+            {
+                Directory.CreateDirectory(destDir);
+            }
+
+            entry.ExtractToFile(destFile, overwrite: true);
+            count++;
+
+            if (count % 5 == 0 || count == total)
+            {
+                double pct = 15.0 + ((double)count / total) * 20.0;
+                progressCallback(pct, $"Çıkartılıyor ({count}/{total}): {entry.Name}");
+                await Task.Yield();
+            }
+        }
     }
 
     private async Task CopyDirectoryAsync(string sourceDir, string targetDir, Action<double, string> progressCallback)
@@ -166,7 +238,6 @@ public class InstallerEngine
 
         foreach (var file in files)
         {
-            // CRITICAL SAFETY FILTER 1: Skip any setup binaries
             if (file.Name.StartsWith("KasapOtomasyon.Setup", StringComparison.OrdinalIgnoreCase) || 
                 file.Name.Equals("Setup.exe", StringComparison.OrdinalIgnoreCase) ||
                 (file.Name.StartsWith("Setup", StringComparison.OrdinalIgnoreCase) && file.Extension.Equals(".exe", StringComparison.OrdinalIgnoreCase)))
@@ -174,7 +245,6 @@ public class InstallerEngine
                 continue;
             }
 
-            // CRITICAL SAFETY FILTER 2: Skip banned source code files and extensions
             if (BannedExtensions.Contains(file.Extension))
             {
                 continue;
@@ -183,7 +253,6 @@ public class InstallerEngine
             string relativePath = Path.GetRelativePath(sourceDir, file.FullName);
             var pathSegments = relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
-            // CRITICAL SAFETY FILTER 3: Skip banned source directories (.vs, src, tests, etc.)
             if (pathSegments.Any(segment => BannedDirs.Contains(segment)))
             {
                 continue;
